@@ -9,6 +9,7 @@ IMG_URL = "https://huggingface.co/banhkeomath1/and/resolve/main/tutorial.png"
 
 if not os.path.exists(IMG_PATH):
     import urllib.request
+    print("📥 Downloading tutorial.png ...")
     urllib.request.urlretrieve(IMG_URL, IMG_PATH)
 
 # Encode ảnh thành base64
@@ -17,7 +18,7 @@ with open(IMG_PATH, "rb") as f:
 
 
 # ============================================================
-# 2) HTML HIỂN THỊ GIAO DIỆN
+# 2) HTML BLOCK
 # ============================================================
 html_block = f"""
 <style>
@@ -28,8 +29,13 @@ html_block = f"""
     font-size: 16px;
     font-weight: 600;
     color: #e6e6e6;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     border-radius: 6px;
+}}
+.contact {{
+    color: #cccccc;
+    margin: 4px 0 12px 4px;
+    font-size: 14px;
 }}
 .code-box-container {{
     position: relative;
@@ -67,6 +73,12 @@ img {{
 👉 Anh chị vui lòng thực hiện <b>4 bước hướng dẫn</b> bên dưới để tải model cần thiết:
 </div>
 
+<div class="contact">
+📞 Liên hệ hỗ trợ khi gặp sự cố: 
+<a href="https://zalo.me/0386369365" target="_blank">0386.369.365 (Zalo)</a> — 
+<a href="https://fb.com/xanhphoto.offical" target="_blank">fb.com/xanhphoto.offical</a>
+</div>
+
 <div class="code-box-container">
     <button class="copy-btn" onclick="copyCmd()">COPY</button>
     <div id="cmdText">source env.txt && chmod +x wan22.sh && bash wan22.sh</div>
@@ -89,4 +101,4 @@ function copyCmd(){{
 """
 
 display(HTML(html_block))
-
+print("✔ Tutorial HTML + Image displayed successfully!")
