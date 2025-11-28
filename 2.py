@@ -9,7 +9,6 @@ IMG_URL = "https://huggingface.co/banhkeomath1/and/resolve/main/tutorial.png"
 
 if not os.path.exists(IMG_PATH):
     import urllib.request
-    print("📥 Downloading tutorial.png ...")
     urllib.request.urlretrieve(IMG_URL, IMG_PATH)
 
 # Encode ảnh thành base64
@@ -101,4 +100,4 @@ function copyCmd(){{
 """
 
 display(HTML(html_block))
-print("✔ Tutorial HTML + Image displayed successfully!")
+
