@@ -106,6 +106,7 @@ run_show("pip install -r Bjornulf_custom_nodes/requirements.txt")
 # ⭐⭐⭐ NEW: Installing ComfyUI-Florence2 ⭐⭐⭐
 print("📥 Installing ComfyUI-Florence2...")
 run_show("git clone https://github.com/kijai/ComfyUI-Florence2.git")
-run_show("pip install -r comfyui-florence2/requirements.txt")
+run_show("pip install -r ComfyUI-Florence2/requirements.txt")
 
 print("\n🎉 ALL CUSTOM NODES INSTALLED SUCCESSFULLY!\n")
+
