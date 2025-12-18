@@ -40,20 +40,17 @@ run(
     'lightx2v_T2V_14B_cfg_step_distill_v2_lora_rank64_bf16.safetensors '
     '-P /content/ComfyUI/models/loras'
 )
+
 run(
-    'wget https://huggingface.co/banhkeomath1/and/resolve/main/style.png '
+    'wget https://huggingface.co/banhkeomath1/and/resolve/main/ComfyUI_00004_.png '
     '-P /content/ComfyUI/input'
 )
 
 run(
-    'wget https://huggingface.co/banhkeomath1/and/resolve/main/ComfyUI_00005_.png '
+    'wget https://huggingface.co/banhkeomath1/and/resolve/main/ComfyUI_00006_.png '
     '-P /content/ComfyUI/input'
 )
 
-run(
-    'wget https://huggingface.co/banhkeomath1/and/resolve/main/note.JPG '
-    '-P /content/ComfyUI/input'
-)
 run("pip install -r /content/ComfyUI/requirements.txt")
 run("pip install watchdog vtracer torchsde replicate")
 run("pip install sageattention==1.0.6")
