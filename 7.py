@@ -52,8 +52,8 @@ run(
 )
 
 run("pip install -r /content/ComfyUI/requirements.txt")
-run("pip install watchdog vtracer torchsde replicate")
-run("pip install sageattention==1.0.6")
+run("pip install watchdog vtracer torchsde replicate llama-cpp-python")
+run("pip install flash-attn --no-build-isolation")
 run("pip install transformers==4.57.3")
 
 print("\n Tất cả model đã được tải xuống và cài đặt xong")
