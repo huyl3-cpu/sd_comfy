@@ -41,6 +41,10 @@ with open(env_file, "r", encoding="utf-8") as f:
 
 print("✅ Loaded env.txt")
 run_show("pip install xformers==0.0.32.post2 torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu128")
+os.chdir("/content/ComfyUI/custom_nodes")
+run_show("git clone https://github.com/Comfy-Org/ComfyUI-Manager.git")
+os.chdir("/content/ComfyUI/custom_nodes/ComfyUI-Manager")
+run_show("pip install -r requirements.txt")
 os.chdir("/content/ComfyUI")
 env_keys = [
     "dif",
