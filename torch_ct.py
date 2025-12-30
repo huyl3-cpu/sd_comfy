@@ -8,11 +8,9 @@ def run_show(cmd):
     subprocess.run(cmd, shell=True)
 
 os.chdir("/content/ComfyUI/custom_nodes")
-
 run_show("git clone https://github.com/Comfy-Org/ComfyUI-Manager.git")
 os.chdir("/content/ComfyUI/custom_nodes/ComfyUI-Manager")
 run_show("pip install -r requirements.txt")
-run_show("pip install xformers==0.0.32.post2 torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu128")
 
 os.chdir("/content/ComfyUI/custom_nodes")
 run_show("git clone https://github.com/yolain/ComfyUI-Easy-Use.git")
@@ -79,6 +77,7 @@ run_show("pip install -r ComfyUI_LayerStyle/requirements.txt")
 
 run_show("git clone https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler.git")
 run_show("pip install -r /content/ComfyUI/custom_nodes/ComfyUI-SeedVR2_VideoUpscaler/requirements.txt")
+
 
 
 
