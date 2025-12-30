@@ -69,12 +69,6 @@ for k in env_keys:
 
 run(f'"{sys.executable}" -m pip install -r /content/ComfyUI/requirements.txt', check=True)
 
-run(
-    f'"{sys.executable}" -m pip install xformers==0.0.32.post2 torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 '
-    f'--index-url https://download.pytorch.org/whl/cu128',
-    check=True
-)
-
 custom_nodes = "/content/ComfyUI/custom_nodes"
 os.makedirs(custom_nodes, exist_ok=True)
 os.chdir(custom_nodes)
