@@ -1,30 +1,47 @@
-import os, subprocess
+import os
+import subprocess
 
 def run(cmd: str, check: bool = True):
     print(f"\n$ {cmd}")
     return subprocess.run(cmd, shell=True, check=check)
 
+def run_show(cmd: str, check: bool = True):
+    return run(cmd, check=check)
+
+def _has_ipython_kernel() -> bool:
+    try:
+        from IPython import get_ipython
+        return get_ipython() is not None
+    except Exception:
+        return False
+
 try:
-    from google.colab import drive 
+    from google.colab import drive
 except Exception:
     drive = None
 
+os.makedirs("/content", exist_ok=True)
 os.chdir("/content")
+print("📁 cd /content")
+
 run("wget -q https://huggingface.co/banhkeomath2/wan22/resolve/main/wan22.sh -O /content/wan22.sh", check=False)
 run("wget -q https://huggingface.co/banhkeomath2/wan22/resolve/main/env.txt -O /content/env.txt", check=False)
+
 run("apt-get update -y", check=False)
 run("apt-get install -y aria2", check=False)
+
 if not os.path.isdir("/content/ComfyUI"):
     run("git clone https://github.com/comfyanonymous/ComfyUI.git /content/ComfyUI", check=False)
 else:
     print("✅ ComfyUI already exists, skip clone")
-if drive is not None:
+
+if drive is not None and _has_ipython_kernel():
     try:
         drive.mount("/content/drive")
     except Exception as e:
         print("⚠ drive.mount failed:", e)
 else:
-    print("⚠ Not running in Colab, skip drive.mount")
+    print("⚠ Skip drive.mount (no IPython kernel / not Colab notebook execution)")
 
 env_file = "/content/env.txt"
 if not os.path.isfile(env_file):
@@ -36,16 +53,15 @@ with open(env_file, "r", encoding="utf-8") as f:
         if not line or line.startswith("#") or "=" not in line:
             continue
         k, v = line.split("=", 1)
-        k, v = k.strip(), v.strip().strip('"').strip("'")
+        k = k.strip()
+        v = v.strip().strip('"').strip("'")
         os.environ[k] = v
 
 print("✅ Loaded env.txt")
-run_show("pip install xformers==0.0.32.post2 torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu128")
-os.chdir("/content/ComfyUI/custom_nodes")
-run_show("git clone https://github.com/Comfy-Org/ComfyUI-Manager.git")
-os.chdir("/content/ComfyUI/custom_nodes/ComfyUI-Manager")
-run_show("pip install -r requirements.txt")
+
 os.chdir("/content/ComfyUI")
+print("📁 cd /content/ComfyUI")
+
 env_keys = [
     "dif",
     "cp",
@@ -70,7 +86,6 @@ for key in env_keys:
         created += 1
 
 if created == 0:
-    print("⚠ No folders created. Check env.txt keys. "
-          "Env variable names cannot contain '/'. Example: LORAS_WAN22=/content/ComfyUI/models/loras/wan22")
+    print("⚠ No folders created. Check env.txt keys. Env variable names cannot contain '/'. Example: LORAS_WAN22=/content/ComfyUI/models/loras/wan22")
 
 print("\n🎉 Done init step.")
