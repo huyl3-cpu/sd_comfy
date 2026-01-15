@@ -12,7 +12,6 @@ run_show("git clone https://github.com/yolain/ComfyUI-Easy-Use.git")
 run_show("pip install -r ./ComfyUI-Easy-Use/requirements.txt")
 
 run_show("git clone https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git")
-run_show("wget https://huggingface.co/banhkeomath2/sound/resolve/main/note.mp3 -P /content/ComfyUI/custom_nodes/ComfyUI-Custom-Scripts/web/js/assets/")
 run_show("hf download banhkeomath2/sound --local-dir /content/ComfyUI/custom_nodes/ComfyUI-Custom-Scripts/web/js/assets")
 
 run_show("git clone https://github.com/crystian/ComfyUI-Crystools.git")
@@ -72,6 +71,7 @@ run_show("pip install -r ComfyUI_LayerStyle/requirements.txt")
 
 run_show("git clone https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler.git")
 run_show("pip install -r /content/ComfyUI/custom_nodes/ComfyUI-SeedVR2_VideoUpscaler/requirements.txt")
+
 
 
 
