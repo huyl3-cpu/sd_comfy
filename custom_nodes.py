@@ -7,12 +7,12 @@ def run(cmd):
 def run_show(cmd):
     subprocess.run(cmd, shell=True)
 
-os.chdir("/content/ComfyUI/custom_nodes")
+os.chdir("C:\\Users\\lehie\\Documents\\sd_comfy\\custom_nodes")
 run_show("git clone https://github.com/yolain/ComfyUI-Easy-Use.git")
 run_show("pip install -r ./ComfyUI-Easy-Use/requirements.txt")
 
 run_show("git clone https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git")
-run_show("hf download banhkeomath2/sound --local-dir /content/ComfyUI/custom_nodes/ComfyUI-Custom-Scripts/web/js/assets")
+run_show("hf download banhkeomath2/sound --local-dir C:\\Users\\lehie\\Documents\\sd_comfy\\custom_nodes\\ComfyUI-Custom-Scripts\\web\\js\\assets")
 
 run_show("git clone https://github.com/crystian/ComfyUI-Crystools.git")
 run_show("pip install -r ComfyUI-Crystools/requirements.txt")
@@ -70,14 +70,14 @@ run_show("git clone https://github.com/chflame163/ComfyUI_LayerStyle.git")
 run_show("pip install -r ComfyUI_LayerStyle/requirements.txt")
 
 run_show("git clone https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler.git")
-run_show("pip install -r /content/ComfyUI/custom_nodes/ComfyUI-SeedVR2_VideoUpscaler/requirements.txt")
+run_show("pip install -r ComfyUI-SeedVR2_VideoUpscaler/requirements.txt")
 
+run_show("git clone https://github.com/Fannovel16/comfyui_controlnet_aux.git")
+run_show("pip install -r comfyui_controlnet_aux/requirements.txt")
 
+run_show("git clone https://github.com/kijai/ComfyUI-segment-anything-2.git")
 
+run_show("git clone https://github.com/a-und-b/ComfyUI_Delay.git")
 
-
-
-
-
-
-
+run_show("git clone https://github.com/huyl3-cpu/segment_wan21.git")
+run_show("pip install -r segment_wan21/requirements.txt")
