@@ -5,54 +5,34 @@ def run(cmd: str):
     subprocess.run(cmd, shell=True, check=True)
 
 run("bash -c 'source /content/env.txt || true'")
-
-# ========================================
-# 🎨 DIFFUSION MODELS
-# ========================================
 run(
     'aria2c "https://huggingface.co/QingyanBai/Ditto_models/resolve/main/models_comfy/ditto_global_style_comfy.safetensors" '
     '-o "ditto_global_style_comfy.safetensors" '
     '-d /content/ComfyUI/models/diffusion_models'
 )
-
 run(
     'aria2c "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan2_1-T2V-14B_fp8_e4m3fn.safetensors" '
     '-o "Wan2_1-T2V-14B_fp8_e4m3fn.safetensors" '
     '-d /content/ComfyUI/models/diffusion_models/'
 )
-
 run(
     'aria2c "https://huggingface.co/Kijai/WanVideo_comfy_fp8_scaled/resolve/main/Wan22Animate/Wan2_2-Animate-14B_fp8_scaled_e4m3fn_KJ_v2.safetensors" '
     '-o "Wan2_2-Animate-14B_fp8_scaled_e4m3fn_KJ_v2.safetensors" '
     "-d /content/ComfyUI/models/diffusion_models"
 )
-
-# ========================================
-# 📝 TEXT ENCODERS
-# ========================================
 run(
     'aria2c "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/umt5-xxl-enc-fp8_e4m3fn.safetensors" '
     '-o "umt5-xxl-enc-fp8_e4m3fn.safetensors" '
     '-d /content/ComfyUI/models/text_encoders'
 )
-
-# ========================================
-# 🎬 VAE
-# ========================================
 run(
     'wget https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors '
     '-P /content/ComfyUI/models/vae/'
 )
-
-# VAE in loras directory (as per original)
 run(
     "wget https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors "
     "-O /content/ComfyUI/models/loras/wan_2.1_vae.safetensors"
 )
-
-# ========================================
-# 🎯 LORAS
-# ========================================
 run(
     'wget https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_CausVid_14B_T2V_lora_rank32_v2.safetensors '
     '-P /content/ComfyUI/models/loras'
@@ -82,10 +62,6 @@ run(
     "wget https://huggingface.co/banhkeomath2/wan22/resolve/main/FullDynamic_Ultimate_Fusion_Elite.safetensors "
     "-P /content/ComfyUI/models/loras"
 )
-
-# ========================================
-# 🔍 DETECTION MODELS
-# ========================================
 run(
     "wget https://huggingface.co/Wan-AI/Wan2.2-Animate-14B/resolve/main/process_checkpoint/det/yolov10m.onnx "
     "-P /content/ComfyUI/models/detection"
@@ -100,26 +76,16 @@ run(
     "wget https://huggingface.co/Kijai/vitpose_comfy/resolve/main/onnx/vitpose_h_wholebody_model.onnx "
     "-P /content/ComfyUI/models/detection"
 )
-
-# ========================================
-# 👁️ CLIP VISION
-# ========================================
 run(
     "wget https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors "
     "-P /content/ComfyUI/models/clip_vision"
 )
-
-# ========================================
-# 🖼️ INPUT IMAGES
-# ========================================
 run(
     'wget https://huggingface.co/banhkeomath1/and/resolve/main/ComfyUI_00004_.png '
     '-P /content/ComfyUI/input'
 )
-
 run(
     'wget https://huggingface.co/banhkeomath1/and/resolve/main/ComfyUI_00006_.png '
     '-P /content/ComfyUI/input'
 )
-
 print("\n✅ Tất cả model đã được tải xuống xong!")
