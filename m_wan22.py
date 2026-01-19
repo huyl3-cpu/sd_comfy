@@ -4,7 +4,6 @@ def run(cmd: str):
     print(f"\n RUN: {cmd}")
     subprocess.run(cmd, shell=True, check=True)
 
-# Load env (nếu có)
 run("bash -c 'source /content/env.txt || true'")
 
 run(
@@ -22,17 +21,11 @@ run(
     "-P /content/ComfyUI/models/detection"
 )
 
-# -------------------------
-# CLIP Vision
-# -------------------------
 run(
     "wget https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors "
     "-P /content/ComfyUI/models/clip_vision"
 )
 
-# -------------------------
-# Loras
-# -------------------------
 run(
     "wget https://huggingface.co/banhkeomath2/wan22/resolve/main/WAN22_MoCap_fullbodyCOPY_ED.safetensors "
     "-P /content/ComfyUI/models/loras"
@@ -63,24 +56,17 @@ run(
     "-O /content/ComfyUI/models/loras/Wan21_CausVid_14B_T2V_lora_rank32_v2.safetensors"
 )
 
-# (Bạn đang để VAE vào loras theo command — mình giữ đúng)
 run(
     "wget https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors "
     "-O /content/ComfyUI/models/loras/wan_2.1_vae.safetensors"
 )
 
-# -------------------------
-# Diffusion models
-# -------------------------
 run(
     'aria2c "https://huggingface.co/Kijai/WanVideo_comfy_fp8_scaled/resolve/main/Wan22Animate/Wan2_2-Animate-14B_fp8_scaled_e4m3fn_KJ_v2.safetensors" '
     '-o "Wan2_2-Animate-14B_fp8_scaled_e4m3fn_KJ_v2.safetensors" '
     "-d /content/ComfyUI/models/diffusion_models"
 )
 
-# -------------------------
-# Text encoders
-# -------------------------
 run(
     'aria2c "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/umt5-xxl-enc-fp8_e4m3fn.safetensors" '
     '-o "umt5-xxl-enc-fp8_e4m3fn.safetensors" '
