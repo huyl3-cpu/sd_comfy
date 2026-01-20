@@ -29,10 +29,7 @@ run(
     'wget https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors '
     '-P /content/ComfyUI/models/vae/'
 )
-run(
-    "wget https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors "
-    "-O /content/ComfyUI/models/loras/wan_2.1_vae.safetensors"
-)
+
 run(
     'wget https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_CausVid_14B_T2V_lora_rank32_v2.safetensors '
     '-P /content/ComfyUI/models/loras'
@@ -89,3 +86,4 @@ run(
     '-P /content/ComfyUI/input'
 )
 print("\n✅ Tất cả model đã được tải xuống xong!")
+
