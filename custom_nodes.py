@@ -84,3 +84,4 @@ run_show("pip install -r segment_wan21/requirements.txt")
 
 run_show("git clone https://github.com/kijai/ComfyUI-MelBandRoFormer.git")
 run_show("pip install -r ComfyUI-MelBandRoFormer/requirements.txt")
+
