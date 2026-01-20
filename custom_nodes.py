@@ -35,8 +35,8 @@ run_show("pip install -r rgthree-comfy/requirements.txt")
 
 run_show("git clone https://github.com/SeanScripts/ComfyUI-Unload-Model.git")
 
-run_show("git clone https://github.com/1038lab/ComfyUI-QwenVL.git")
-run_show("pip install -r ./ComfyUI-QwenVL/requirements.txt")
+run_show("git clone https://github.com/huyl3-cpu/QwenVl.git")
+run_show("pip install -r QwenVl/requirements.txt")
 
 run_show("git clone https://github.com/kijai/ComfyUI-GIMM-VFI.git")
 run_show("pip install -r ComfyUI-GIMM-VFI/requirements.txt")
@@ -84,6 +84,7 @@ run_show("pip install -r segment_wan21/requirements.txt")
 
 run_show("git clone https://github.com/kijai/ComfyUI-MelBandRoFormer.git")
 run_show("pip install -r ComfyUI-MelBandRoFormer/requirements.txt")
+
 
 
 
