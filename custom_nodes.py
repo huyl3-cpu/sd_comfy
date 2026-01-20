@@ -7,7 +7,7 @@ def run(cmd):
 def run_show(cmd):
     subprocess.run(cmd, shell=True)
 
-os.chdir("https://github.com/huyl3-cpu/sd_comfy/blob/main/custom_nodes.py")
+os.chdir("/content/ComfyUI/custom_nodes")
 run_show("git clone https://github.com/yolain/ComfyUI-Easy-Use.git")
 run_show("pip install -r ./ComfyUI-Easy-Use/requirements.txt")
 
@@ -84,4 +84,5 @@ run_show("pip install -r segment_wan21/requirements.txt")
 
 run_show("git clone https://github.com/kijai/ComfyUI-MelBandRoFormer.git")
 run_show("pip install -r ComfyUI-MelBandRoFormer/requirements.txt")
+
 
