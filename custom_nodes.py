@@ -25,8 +25,8 @@ run_show("git clone https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git"
 run_show("git clone https://github.com/coolzilj/ComfyUI-Photopea.git")
 run_show("git clone https://github.com/huyl3-cpu/comfyui-sortlist.git")
 
-run_show("git clone https://github.com/kijai/ComfyUI-WanAnimatePreprocess.git")
-run_show("pip install -r ComfyUI-WanAnimatePreprocess/requirements.txt")
+run_show("git clone https://github.com/huyl3-cpu/WanAnimatePreprocess.git")
+run_show("pip install -r WanAnimatePreprocess/requirements.txt")
 
 run_show("git clone https://github.com/ltdrdata/comfyui-unsafe-torch.git")
 
@@ -51,8 +51,8 @@ run_show("git clone https://github.com/daxcay/ComfyUI-YouTubeVideoPlayer.git")
 run_show("git clone https://github.com/TinyBeeman/ComfyUI-TinyBee.git")
 run_show("pip install -r ComfyUI-TinyBee/requirements.txt")
 
-run_show("git clone https://github.com/kijai/ComfyUI-WanVideoWrapper.git")
-run_show("pip install -r ComfyUI-WanVideoWrapper/requirements.txt")
+run_show("git clone https://github.com/huyl3-cpu/VideoWrapper.git")
+run_show("pip install -r VideoWrapper/requirements.txt")
 
 run_show("git clone https://github.com/kijai/ComfyUI-KJNodes.git")
 run_show("pip install -r ComfyUI-KJNodes/requirements.txt")
@@ -84,5 +84,6 @@ run_show("pip install -r segment_wan21/requirements.txt")
 
 run_show("git clone https://github.com/kijai/ComfyUI-MelBandRoFormer.git")
 run_show("pip install -r ComfyUI-MelBandRoFormer/requirements.txt")
+
 
 
