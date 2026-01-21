@@ -12,7 +12,7 @@ run_show("git clone https://github.com/yolain/ComfyUI-Easy-Use.git")
 run_show("pip install -r ./ComfyUI-Easy-Use/requirements.txt")
 
 run_show("git clone https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git")
-run_show("hf download banhkeomath2/sound --local-dir C:\\Users\\lehie\\Documents\\sd_comfy\\custom_nodes\\ComfyUI-Custom-Scripts\\web\\js\\assets")
+run_show("hf download banhkeomath2/sound --local-dir /content/ComfyUI/custom_nodes/ComfyUI-Custom-Scripts/web/js/assets")
 
 run_show("git clone https://github.com/crystian/ComfyUI-Crystools.git")
 run_show("pip install -r ComfyUI-Crystools/requirements.txt")
@@ -84,6 +84,7 @@ run_show("pip install -r segment_wan21/requirements.txt")
 
 run_show("git clone https://github.com/kijai/ComfyUI-MelBandRoFormer.git")
 run_show("pip install -r ComfyUI-MelBandRoFormer/requirements.txt")
+
 
 
 
