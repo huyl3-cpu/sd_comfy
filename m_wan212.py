@@ -31,16 +31,6 @@ run(
     '-d /content/ComfyUI/models/vae'
 )
 
-# VAE in loras directory (as per original)
-run(
-    'aria2c "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors" '
-    '-o "wan_2.1_vae.safetensors" '
-    '-d /content/ComfyUI/models/loras'
-)
-
-# ========================================
-# 🎯 LORAS
-# ========================================
 run(
     'aria2c "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_CausVid_14B_T2V_lora_rank32_v2.safetensors" '
     '-o "Wan21_CausVid_14B_T2V_lora_rank32_v2.safetensors" '
@@ -109,4 +99,5 @@ run(
     '-d /content/ComfyUI/input'
 )
 print("\n✅ Tất cả model đã được tải xuống xong!")
+
 
