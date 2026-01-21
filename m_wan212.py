@@ -5,40 +5,26 @@ def run(cmd: str):
     subprocess.run(cmd, shell=True, check=True)
 
 run("bash -c 'source /content/env.txt || true'")
-
-# ========================================
-# 🎨 DIFFUSION MODELS
-# ========================================
 run(
     'aria2c "https://huggingface.co/QingyanBai/Ditto_models/resolve/main/models_comfy/ditto_global_style_comfy.safetensors" '
     '-o "ditto_global_style_comfy.safetensors" '
     '-d /content/ComfyUI/models/diffusion_models'
 )
-
 run(
     'aria2c "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan2_1-T2V-14B_fp8_e4m3fn.safetensors" '
     '-o "Wan2_1-T2V-14B_fp8_e4m3fn.safetensors" '
     '-d /content/ComfyUI/models/diffusion_models/'
 )
-
 run(
     'aria2c "https://huggingface.co/Kijai/WanVideo_comfy_fp8_scaled/resolve/main/Wan22Animate/Wan2_2-Animate-14B_fp8_scaled_e4m3fn_KJ_v2.safetensors" '
     '-o "Wan2_2-Animate-14B_fp8_scaled_e4m3fn_KJ_v2.safetensors" '
     "-d /content/ComfyUI/models/diffusion_models"
 )
-
-# ========================================
-# 📝 TEXT ENCODERS
-# ========================================
 run(
     'aria2c "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/umt5-xxl-enc-fp8_e4m3fn.safetensors" '
     '-o "umt5-xxl-enc-fp8_e4m3fn.safetensors" '
     '-d /content/ComfyUI/models/text_encoders'
 )
-
-# ========================================
-# 🎬 VAE
-# ========================================
 run(
     'aria2c "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors" '
     '-o "wan_2.1_vae.safetensors" '
@@ -90,10 +76,6 @@ run(
     '-o "FullDynamic_Ultimate_Fusion_Elite.safetensors" '
     '-d /content/ComfyUI/models/loras'
 )
-
-# ========================================
-# 🔍 DETECTION MODELS
-# ========================================
 run(
     'aria2c "https://huggingface.co/Wan-AI/Wan2.2-Animate-14B/resolve/main/process_checkpoint/det/yolov10m.onnx" '
     '-o "yolov10m.onnx" '
@@ -111,29 +93,20 @@ run(
     '-o "vitpose_h_wholebody_model.onnx" '
     '-d /content/ComfyUI/models/detection'
 )
-
-# ========================================
-# 👁️ CLIP VISION
-# ========================================
 run(
     'aria2c "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors" '
     '-o "clip_vision_h.safetensors" '
     '-d /content/ComfyUI/models/clip_vision'
 )
-
-# ========================================
-# 🖼️ INPUT IMAGES
-# ========================================
 run(
     'aria2c "https://huggingface.co/banhkeomath1/and/resolve/main/ComfyUI_00004_.png" '
     '-o "ComfyUI_00004_.png" '
     '-d /content/ComfyUI/input'
 )
-
 run(
     'aria2c "https://huggingface.co/banhkeomath1/and/resolve/main/ComfyUI_00006_.png" '
     '-o "ComfyUI_00006_.png" '
     '-d /content/ComfyUI/input'
 )
-
 print("\n✅ Tất cả model đã được tải xuống xong!")
+
