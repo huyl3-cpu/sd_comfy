@@ -31,18 +31,21 @@ run(
 )
 
 run(
-    'wget https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors '
-    '-P /content/ComfyUI/models/vae/'
+    'aria2c "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors" '
+    '-o "wan_2.1_vae.safetensors" '
+    '-d /content/ComfyUI/models/vae'
 )
 
 run(
-    'wget https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Lightx2v/lightx2v_T2V_14B_cfg_step_distill_v2_lora_rank64_bf16.safetensors '
-    '-P /content/ComfyUI/models/loras'
+    'aria2c "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Lightx2v/lightx2v_T2V_14B_cfg_step_distill_v2_lora_rank64_bf16.safetensors" '
+    '-o "lightx2v_T2V_14B_cfg_step_distill_v2_lora_rank64_bf16.safetensors" '
+    '-d /content/ComfyUI/models/loras'
 )
 
 run(
-    "wget https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors "
-    "-P /content/ComfyUI/models/clip_vision"
+    'aria2c "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors" '
+    '-o "clip_vision_h.safetensors" '
+    '-d /content/ComfyUI/models/clip_vision'
 )
 
 print("\n✅ Tất cả model đã được tải xuống xong!")

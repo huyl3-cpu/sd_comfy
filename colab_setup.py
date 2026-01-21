@@ -1,12 +1,10 @@
 #@title 🔑 1. Setup ComfyUI { display-mode: "form" }
-#@markdown ## 🎯 CẤU HÌNH CHẾ ĐỘ
-mode = "MC" #@param ["Chuyển_Style", "Dancing", "Chuyển_Style&Dancing", "MC"]
-
+#@markdown ### 🎯 CẤU HÌNH CHẾ ĐỘ
+mode = "Chuyển_Style & Dancing" #@param ["Chuyển_Style", "Dancing", "Chuyển_Style & Dancing", "MC"]
 #@markdown ---
-#@markdown ##### 💾 Tuỳ chọn Google Drive *(nếu cần lưu trữ)*
-login_drive = True #@param {type:"boolean"}
-
-if login_drive:
+Login_drive = True #@param {type:"boolean"}
+Sageattention = False #@param {type:"boolean"}
+if Login_drive:
     from google.colab import drive
     drive.mount('/content/drive')
 %cd /content/
@@ -18,17 +16,21 @@ def play(mp3):
     display(Javascript('document.querySelector("audio").style.display="none"'))
 !python /content/sd_comfy/init.py
 play("/content/sound/1.mp3")
-
 if mode == "Chuyển_Style":
     !python /content/sd_comfy/m_ditto.py
 elif mode == "Dancing":
     !python /content/sd_comfy/m_wan22.py
-elif mode == "Chuyển_Style&Dancing":
+elif mode == "Chuyển_Style & Dancing":
     !python /content/sd_comfy/m_wan212.py
 elif mode == "MC":
     !python /content/sd_comfy/m_mc.py
-
 !python /content/sd_comfy/custom_nodes.py
+if Sageattention:
+    %cd /content/ComfyUI/
+    !git clone https://github.com/thu-ml/SageAttention.git
+    %cd SageAttention
+    !export EXT_PARALLEL=4 NVCC_APPEND_FLAGS="--threads 8" MAX_JOBS=32 # Optional
+    !python setup.py install
 %cd /content/ComfyUI/
 !pip install onnxruntime-gpu==1.23.2
 !pip uninstall -y opencv-python opencv-python-headless opencv-contrib-python-headless opencv-contrib-python

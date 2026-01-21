@@ -40,86 +40,100 @@ run(
 # 🎬 VAE
 # ========================================
 run(
-    'wget https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors '
-    '-P /content/ComfyUI/models/vae/'
+    'aria2c "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors" '
+    '-o "wan_2.1_vae.safetensors" '
+    '-d /content/ComfyUI/models/vae'
 )
 
 # VAE in loras directory (as per original)
 run(
-    "wget https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors "
-    "-O /content/ComfyUI/models/loras/wan_2.1_vae.safetensors"
+    'aria2c "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors" '
+    '-o "wan_2.1_vae.safetensors" '
+    '-d /content/ComfyUI/models/loras'
 )
 
 # ========================================
 # 🎯 LORAS
 # ========================================
 run(
-    'wget https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_CausVid_14B_T2V_lora_rank32_v2.safetensors '
-    '-P /content/ComfyUI/models/loras'
+    'aria2c "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_CausVid_14B_T2V_lora_rank32_v2.safetensors" '
+    '-o "Wan21_CausVid_14B_T2V_lora_rank32_v2.safetensors" '
+    '-d /content/ComfyUI/models/loras'
 )
 
 run(
-    'wget https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Lightx2v/lightx2v_T2V_14B_cfg_step_distill_v2_lora_rank64_bf16.safetensors '
-    '-P /content/ComfyUI/models/loras'
+    'aria2c "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Lightx2v/lightx2v_T2V_14B_cfg_step_distill_v2_lora_rank64_bf16.safetensors" '
+    '-o "lightx2v_T2V_14B_cfg_step_distill_v2_lora_rank64_bf16.safetensors" '
+    '-d /content/ComfyUI/models/loras'
 )
 
 run(
-    "wget https://huggingface.co/banhkeomath2/wan22/resolve/main/WAN22_MoCap_fullbodyCOPY_ED.safetensors "
-    "-P /content/ComfyUI/models/loras"
+    'aria2c "https://huggingface.co/banhkeomath2/wan22/resolve/main/WAN22_MoCap_fullbodyCOPY_ED.safetensors" '
+    '-o "WAN22_MoCap_fullbodyCOPY_ED.safetensors" '
+    '-d /content/ComfyUI/models/loras'
 )
 
 run(
-    "wget https://huggingface.co/banhkeomath2/wan22/resolve/main/Wan2.2-Fun-A14B-InP-Fusion-Elite.safetensors "
-    "-P /content/ComfyUI/models/loras"
+    'aria2c "https://huggingface.co/banhkeomath2/wan22/resolve/main/Wan2.2-Fun-A14B-InP-Fusion-Elite.safetensors" '
+    '-o "Wan2.2-Fun-A14B-InP-Fusion-Elite.safetensors" '
+    '-d /content/ComfyUI/models/loras'
 )
 
 run(
-    "wget https://huggingface.co/banhkeomath2/wan22/resolve/main/WanAnimate_relight_lora_fp16.safetensors "
-    "-P /content/ComfyUI/models/loras"
+    'aria2c "https://huggingface.co/banhkeomath2/wan22/resolve/main/WanAnimate_relight_lora_fp16.safetensors" '
+    '-o "WanAnimate_relight_lora_fp16.safetensors" '
+    '-d /content/ComfyUI/models/loras'
 )
 
 run(
-    "wget https://huggingface.co/banhkeomath2/wan22/resolve/main/FullDynamic_Ultimate_Fusion_Elite.safetensors "
-    "-P /content/ComfyUI/models/loras"
+    'aria2c "https://huggingface.co/banhkeomath2/wan22/resolve/main/FullDynamic_Ultimate_Fusion_Elite.safetensors" '
+    '-o "FullDynamic_Ultimate_Fusion_Elite.safetensors" '
+    '-d /content/ComfyUI/models/loras'
 )
 
 # ========================================
 # 🔍 DETECTION MODELS
 # ========================================
 run(
-    "wget https://huggingface.co/Wan-AI/Wan2.2-Animate-14B/resolve/main/process_checkpoint/det/yolov10m.onnx "
-    "-P /content/ComfyUI/models/detection"
+    'aria2c "https://huggingface.co/Wan-AI/Wan2.2-Animate-14B/resolve/main/process_checkpoint/det/yolov10m.onnx" '
+    '-o "yolov10m.onnx" '
+    '-d /content/ComfyUI/models/detection'
 )
 
 run(
-    "wget https://huggingface.co/Kijai/vitpose_comfy/resolve/main/onnx/vitpose_h_wholebody_data.bin "
-    "-P /content/ComfyUI/models/detection"
+    'aria2c "https://huggingface.co/Kijai/vitpose_comfy/resolve/main/onnx/vitpose_h_wholebody_data.bin" '
+    '-o "vitpose_h_wholebody_data.bin" '
+    '-d /content/ComfyUI/models/detection'
 )
 
 run(
-    "wget https://huggingface.co/Kijai/vitpose_comfy/resolve/main/onnx/vitpose_h_wholebody_model.onnx "
-    "-P /content/ComfyUI/models/detection"
+    'aria2c "https://huggingface.co/Kijai/vitpose_comfy/resolve/main/onnx/vitpose_h_wholebody_model.onnx" '
+    '-o "vitpose_h_wholebody_model.onnx" '
+    '-d /content/ComfyUI/models/detection'
 )
 
 # ========================================
 # 👁️ CLIP VISION
 # ========================================
 run(
-    "wget https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors "
-    "-P /content/ComfyUI/models/clip_vision"
+    'aria2c "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors" '
+    '-o "clip_vision_h.safetensors" '
+    '-d /content/ComfyUI/models/clip_vision'
 )
 
 # ========================================
 # 🖼️ INPUT IMAGES
 # ========================================
 run(
-    'wget https://huggingface.co/banhkeomath1/and/resolve/main/ComfyUI_00004_.png '
-    '-P /content/ComfyUI/input'
+    'aria2c "https://huggingface.co/banhkeomath1/and/resolve/main/ComfyUI_00004_.png" '
+    '-o "ComfyUI_00004_.png" '
+    '-d /content/ComfyUI/input'
 )
 
 run(
-    'wget https://huggingface.co/banhkeomath1/and/resolve/main/ComfyUI_00006_.png '
-    '-P /content/ComfyUI/input'
+    'aria2c "https://huggingface.co/banhkeomath1/and/resolve/main/ComfyUI_00006_.png" '
+    '-o "ComfyUI_00006_.png" '
+    '-d /content/ComfyUI/input'
 )
 
 print("\n✅ Tất cả model đã được tải xuống xong!")
