@@ -69,8 +69,8 @@ run_show("pip install -r ComfyUI-Florence2/requirements.txt")
 run_show("git clone https://github.com/chflame163/ComfyUI_LayerStyle.git")
 run_show("pip install -r ComfyUI_LayerStyle/requirements.txt")
 
-run_show("git clone https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler.git")
-run_show("pip install -r ComfyUI-SeedVR2_VideoUpscaler/requirements.txt")
+run_show("git clone https://github.com/huyl3-cpu/SeedVR2_VideoUpscaler.git")
+run_show("pip install -r SeedVR2_VideoUpscaler/requirements.txt")
 
 run_show("git clone https://github.com/Fannovel16/comfyui_controlnet_aux.git")
 run_show("pip install -r comfyui_controlnet_aux/requirements.txt")
