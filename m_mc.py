@@ -3,8 +3,6 @@ import subprocess
 def run(cmd: str):
     print(f"\n RUN: {cmd}")
     subprocess.run(cmd, shell=True, check=True)
-
-run("bash -c 'source /content/env.txt || true'")
 run(
     'aria2c -x 16 -s 16 -k 1M "https://huggingface.co/Kijai/WanVideo_comfy_fp8_scaled/resolve/main/InfiniteTalk/Wan2_1-InfiniteTalk-Single_fp8_e4m3fn_scaled_KJ.safetensors" '
     '-o "Wan2_1-InfiniteTalk-Single_fp8_e4m3fn_scaled_KJ.safetensors" '
