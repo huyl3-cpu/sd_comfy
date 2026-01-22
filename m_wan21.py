@@ -4,7 +4,6 @@ def run(cmd):
     print(f"\n RUN: {cmd}")
     subprocess.run(cmd, shell=True, check=True)
 
-run("bash -c 'source /content/env.txt || true'")
 run(
     'aria2c -x 16 -s 16 -k 1M "https://huggingface.co/QingyanBai/Ditto_models/resolve/main/models_comfy/ditto_global_style_comfy.safetensors" '
     '-o "ditto_global_style_comfy.safetensors" '
