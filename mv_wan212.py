@@ -13,6 +13,7 @@ files_to_move = [
     ("Wan2_2-Animate-14B_fp8_scaled_e4m3fn_KJ_v2.safetensors", "/content/ComfyUI/models/diffusion_models"),
     ("umt5-xxl-enc-fp8_e4m3fn.safetensors", "/content/ComfyUI/models/text_encoders"),
     ("wan_2.1_vae.safetensors", "/content/ComfyUI/models/vae"),
+    ("wan_2.1_vae.safetensors", "/content/ComfyUI/models/loras"),
     ("Wan21_CausVid_14B_T2V_lora_rank32_v2.safetensors", "/content/ComfyUI/models/loras"),
     ("lightx2v_T2V_14B_cfg_step_distill_v2_lora_rank64_bf16.safetensors", "/content/ComfyUI/models/loras"),
     ("WAN22_MoCap_fullbodyCOPY_ED.safetensors", "/content/ComfyUI/models/loras"),
@@ -24,11 +25,14 @@ files_to_move = [
     ("vitpose_h_wholebody_model.onnx", "/content/ComfyUI/models/detection"),
     ("clip_vision_h.safetensors", "/content/ComfyUI/models/clip_vision"),
 ]
+
 print(f"🚀 Bắt đầu di chuyển {len(files_to_move)} file từ {source_root}...")
+
 for filename, dest_dir in files_to_move:
     source_path = f"{source_root}/{filename}"
     
-    run(f"mkdir -p {dest_dir}")
+    if not os.path.exists(dest_dir):
+        run(f"mkdir -p {dest_dir}")
     
     check_cmd = f"test -f {source_path}"
     try:
