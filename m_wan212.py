@@ -5,99 +5,96 @@ def run(cmd: str):
     subprocess.run(cmd, shell=True, check=True)
 
 run("bash -c 'source /content/env.txt || true'")
+### Larger
 run(
-    'aria2c "https://huggingface.co/QingyanBai/Ditto_models/resolve/main/models_comfy/ditto_global_style_comfy.safetensors" '
+    'aria2c -x 16 -s 16 -k 1M "https://huggingface.co/QingyanBai/Ditto_models/resolve/main/models_comfy/ditto_global_style_comfy.safetensors" '
     '-o "ditto_global_style_comfy.safetensors" '
-    '-d /content/ComfyUI/models/diffusion_models'
+    # '-d /content/ComfyUI/models/diffusion_models'
 )
 run(
-    'aria2c "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan2_1-T2V-14B_fp8_e4m3fn.safetensors" '
+    'aria2c -x 16 -s 16 -k 1M "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan2_1-T2V-14B_fp8_e4m3fn.safetensors" '
     '-o "Wan2_1-T2V-14B_fp8_e4m3fn.safetensors" '
-    '-d /content/ComfyUI/models/diffusion_models/'
+    # '-d /content/ComfyUI/models/diffusion_models/'
 )
 run(
-    'aria2c "https://huggingface.co/Kijai/WanVideo_comfy_fp8_scaled/resolve/main/Wan22Animate/Wan2_2-Animate-14B_fp8_scaled_e4m3fn_KJ_v2.safetensors" '
+    'aria2c -x 16 -s 16 -k 1M "https://huggingface.co/Kijai/WanVideo_comfy_fp8_scaled/resolve/main/Wan22Animate/Wan2_2-Animate-14B_fp8_scaled_e4m3fn_KJ_v2.safetensors" '
     '-o "Wan2_2-Animate-14B_fp8_scaled_e4m3fn_KJ_v2.safetensors" '
-    "-d /content/ComfyUI/models/diffusion_models"
+    # "-d /content/ComfyUI/models/diffusion_models"
 )
 run(
-    'aria2c "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/umt5-xxl-enc-fp8_e4m3fn.safetensors" '
+    'aria2c -x 16 -s 16 -k 1M "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/umt5-xxl-enc-fp8_e4m3fn.safetensors" '
     '-o "umt5-xxl-enc-fp8_e4m3fn.safetensors" '
-    '-d /content/ComfyUI/models/text_encoders'
+    # '-d /content/ComfyUI/models/text_encoders'
 )
+### Small
 run(
-    'aria2c "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors" '
+    'aria2c -x 16 -s 16 -k 1M "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors" '
     '-o "wan_2.1_vae.safetensors" '
-    '-d /content/ComfyUI/models/vae'
+    # '-d /content/ComfyUI/models/vae'
 )
 
 run(
-    'aria2c "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_CausVid_14B_T2V_lora_rank32_v2.safetensors" '
+    'aria2c -x 16 -s 16 -k 1M "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors" '
+    '-o "wan_2.1_vae.safetensors" '
+    # '-d /content/ComfyUI/models/loras'
+)
+
+run(
+    'aria2c -x 16 -s 16 -k 1M "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_CausVid_14B_T2V_lora_rank32_v2.safetensors" '
     '-o "Wan21_CausVid_14B_T2V_lora_rank32_v2.safetensors" '
-    '-d /content/ComfyUI/models/loras'
+    # '-d /content/ComfyUI/models/loras'
 )
 
 run(
-    'aria2c "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Lightx2v/lightx2v_T2V_14B_cfg_step_distill_v2_lora_rank64_bf16.safetensors" '
+    'aria2c -x 16 -s 16 -k 1M "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Lightx2v/lightx2v_T2V_14B_cfg_step_distill_v2_lora_rank64_bf16.safetensors" '
     '-o "lightx2v_T2V_14B_cfg_step_distill_v2_lora_rank64_bf16.safetensors" '
-    '-d /content/ComfyUI/models/loras'
+    # '-d /content/ComfyUI/models/loras'
 )
 
 run(
-    'aria2c "https://huggingface.co/banhkeomath2/wan22/resolve/main/WAN22_MoCap_fullbodyCOPY_ED.safetensors" '
+    'aria2c -x 16 -s 16 -k 1M "https://huggingface.co/banhkeomath2/wan22/resolve/main/WAN22_MoCap_fullbodyCOPY_ED.safetensors" '
     '-o "WAN22_MoCap_fullbodyCOPY_ED.safetensors" '
-    '-d /content/ComfyUI/models/loras'
+    # '-d /content/ComfyUI/models/loras'
 )
 
 run(
-    'aria2c "https://huggingface.co/banhkeomath2/wan22/resolve/main/Wan2.2-Fun-A14B-InP-Fusion-Elite.safetensors" '
+    'aria2c -x 16 -s 16 -k 1M "https://huggingface.co/banhkeomath2/wan22/resolve/main/Wan2.2-Fun-A14B-InP-Fusion-Elite.safetensors" '
     '-o "Wan2.2-Fun-A14B-InP-Fusion-Elite.safetensors" '
-    '-d /content/ComfyUI/models/loras'
+    # '-d /content/ComfyUI/models/loras'
 )
 
 run(
-    'aria2c "https://huggingface.co/banhkeomath2/wan22/resolve/main/WanAnimate_relight_lora_fp16.safetensors" '
+    'aria2c -x 16 -s 16 -k 1M "https://huggingface.co/banhkeomath2/wan22/resolve/main/WanAnimate_relight_lora_fp16.safetensors" '
     '-o "WanAnimate_relight_lora_fp16.safetensors" '
-    '-d /content/ComfyUI/models/loras'
+    # '-d /content/ComfyUI/models/loras'
 )
 
 run(
-    'aria2c "https://huggingface.co/banhkeomath2/wan22/resolve/main/FullDynamic_Ultimate_Fusion_Elite.safetensors" '
+    'aria2c -x 16 -s 16 -k 1M "https://huggingface.co/banhkeomath2/wan22/resolve/main/FullDynamic_Ultimate_Fusion_Elite.safetensors" '
     '-o "FullDynamic_Ultimate_Fusion_Elite.safetensors" '
-    '-d /content/ComfyUI/models/loras'
+    # '-d /content/ComfyUI/models/loras'
 )
 run(
-    'aria2c "https://huggingface.co/Wan-AI/Wan2.2-Animate-14B/resolve/main/process_checkpoint/det/yolov10m.onnx" '
+    'aria2c -x 16 -s 16 -k 1M "https://huggingface.co/Wan-AI/Wan2.2-Animate-14B/resolve/main/process_checkpoint/det/yolov10m.onnx" '
     '-o "yolov10m.onnx" '
-    '-d /content/ComfyUI/models/detection'
+    # '-d /content/ComfyUI/models/detection'
 )
 
 run(
-    'aria2c "https://huggingface.co/Kijai/vitpose_comfy/resolve/main/onnx/vitpose_h_wholebody_data.bin" '
+    'aria2c -x 16 -s 16 -k 1M "https://huggingface.co/Kijai/vitpose_comfy/resolve/main/onnx/vitpose_h_wholebody_data.bin" '
     '-o "vitpose_h_wholebody_data.bin" '
-    '-d /content/ComfyUI/models/detection'
+    # '-d /content/ComfyUI/models/detection'
 )
 
 run(
-    'aria2c "https://huggingface.co/Kijai/vitpose_comfy/resolve/main/onnx/vitpose_h_wholebody_model.onnx" '
+    'aria2c -x 16 -s 16 -k 1M "https://huggingface.co/Kijai/vitpose_comfy/resolve/main/onnx/vitpose_h_wholebody_model.onnx" '
     '-o "vitpose_h_wholebody_model.onnx" '
-    '-d /content/ComfyUI/models/detection'
+    # '-d /content/ComfyUI/models/detection'
 )
 run(
-    'aria2c "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors" '
+    'aria2c -x 16 -s 16 -k 1M "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors" '
     '-o "clip_vision_h.safetensors" '
-    '-d /content/ComfyUI/models/clip_vision'
+    # '-d /content/ComfyUI/models/clip_vision'
 )
-run(
-    'aria2c "https://huggingface.co/banhkeomath1/and/resolve/main/ComfyUI_00004_.png" '
-    '-o "ComfyUI_00004_.png" '
-    '-d /content/ComfyUI/input'
-)
-run(
-    'aria2c "https://huggingface.co/banhkeomath1/and/resolve/main/ComfyUI_00006_.png" '
-    '-o "ComfyUI_00006_.png" '
-    '-d /content/ComfyUI/input'
-)
+
 print("\n✅ Tất cả model đã được tải xuống xong!")
-
-
