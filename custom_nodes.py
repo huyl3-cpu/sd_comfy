@@ -57,8 +57,8 @@ run_show("pip install -r VideoWrapper/requirements.txt")
 run_show("git clone https://github.com/kijai/ComfyUI-KJNodes.git")
 run_show("pip install -r ComfyUI-KJNodes/requirements.txt")
 
-run_show("git clone https://github.com/huyl3-cpu/VideoHelperSuite.git")
-run_show("pip install -r VideoHelperSuite/requirements.txt")
+run_show("git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git")
+run_show("pip install -r ComfyUI-VideoHelperSuite/requirements.txt")
 
 run_show("git clone https://github.com/justUmen/Bjornulf_custom_nodes.git")
 run_show("pip install -r Bjornulf_custom_nodes/requirements.txt")
@@ -84,3 +84,4 @@ run_show("pip install -r segment_wan21/requirements.txt")
 
 run_show("git clone https://github.com/kijai/ComfyUI-MelBandRoFormer.git")
 run_show("pip install -r ComfyUI-MelBandRoFormer/requirements.txt")
+
