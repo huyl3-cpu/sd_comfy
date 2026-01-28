@@ -31,7 +31,7 @@ CUSTOM_NODES: List[Tuple[str, str, bool]] = [
     ("https://github.com/TinyBeeman/ComfyUI-TinyBee.git", "ComfyUI-TinyBee", True),
     ("https://github.com/huyl3-cpu/VideoWrapper.git", "VideoWrapper", True),
     ("https://github.com/kijai/ComfyUI-KJNodes.git", "ComfyUI-KJNodes", True),
-    ("https://github.com/huyl3-cpu/VideoHelperSuite.git", "VideoHelperSuite", True),
+    ("https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git", "ComfyUI-VideoHelperSuite", True),
     ("https://github.com/justUmen/Bjornulf_custom_nodes.git", "Bjornulf_custom_nodes", True),
     ("https://github.com/kijai/ComfyUI-Florence2.git", "ComfyUI-Florence2", True),
     ("https://github.com/chflame163/ComfyUI_LayerStyle.git", "ComfyUI_LayerStyle", True),
@@ -149,3 +149,4 @@ if __name__ == "__main__":
     main()
 else:
     main()
+
