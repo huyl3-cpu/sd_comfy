@@ -1,6 +1,6 @@
 """
 SD Comfy - ComfyUI Initialization Script (Optimized for A100 80GB)
-Parallel operations, idempotency checks, and improved security.
+Parallel operations, idempotency checks.
 """
 
 import os
@@ -12,13 +12,20 @@ from typing import Optional
 # ============ Configuration ============
 COMFYUI_REPO = "https://github.com/comfyanonymous/ComfyUI.git"
 MANAGER_REPO = "https://github.com/Comfy-Org/ComfyUI-Manager.git"
-ENV_URL = "https://huggingface.co/banhkeomath2/wan22/resolve/main/env.txt"
 
-# Allowed env keys (whitelist for security)
-ALLOWED_ENV_KEYS = {
-    "dif", "cp", "LORAS_WAN22", "clip", "clipv", "lorasf", 
-    "ipadapter", "loras15xl", "cnt", "birefnet", "upscale", "vae"
-}
+# Model directories to create
+MODEL_DIRS = [
+    "/content/ComfyUI/models/diffusion_models",
+    "/content/ComfyUI/models/checkpoints",
+    "/content/ComfyUI/models/loras",
+    "/content/ComfyUI/models/clip",
+    "/content/ComfyUI/models/clip_vision",
+    "/content/ComfyUI/models/ipadapter",
+    "/content/ComfyUI/models/controlnet",
+    "/content/ComfyUI/models/birefnet",
+    "/content/ComfyUI/models/upscale_models",
+    "/content/ComfyUI/models/vae",
+]
 
 
 def run(cmd: str, check: bool = True, quiet: bool = False) -> subprocess.CompletedProcess:
@@ -52,46 +59,14 @@ def has_ipython_kernel() -> bool:
         return False
 
 
-def load_env_file(filepath: str, allowed_keys: set) -> dict:
-    """
-    Securely load environment variables from file.
-    Only loads keys that are in the whitelist.
-    """
-    env_vars = {}
-    if not os.path.isfile(filepath):
-        print(f"⚠ {filepath} not found, skip loading env")
-        return env_vars
-    
-    with open(filepath, "r", encoding="utf-8") as f:
-        for line_num, line in enumerate(f, 1):
-            line = line.strip()
-            if not line or line.startswith("#") or "=" not in line:
-                continue
-            
-            key, value = line.split("=", 1)
-            key = key.strip()
-            value = value.strip().strip('"').strip("'")
-            
-            # Security: Only allow whitelisted keys
-            if key in allowed_keys:
-                env_vars[key] = value
-                os.environ[key] = value
-            else:
-                print(f"⚠ Line {line_num}: Unknown env key '{key}' ignored (security)")
-    
-    print(f"✅ Loaded {len(env_vars)} env variables")
-    return env_vars
-
-
-def setup_directories(env_keys: set) -> None:
-    """Create directories from environment variables."""
+def setup_directories(dirs: list) -> None:
+    """Create model directories."""
     created = 0
-    for key in env_keys:
-        path = os.environ.get(key)
-        if path:
+    for path in dirs:
+        if not os.path.exists(path):
             os.makedirs(path, exist_ok=True)
             created += 1
-    print(f"✅ Created {created} directories")
+    print(f"✅ Created {created} model directories")
 
 
 def clone_if_missing(repo_url: str, target_dir: str, depth: int = 1) -> bool:
@@ -126,10 +101,9 @@ def main():
     os.chdir("/content")
     print("📁 cd /content")
     
-    # 2. Parallel: Download env.txt + Install aria2
-    print("\n📦 Installing dependencies (parallel)...")
+    # 2. Install aria2
+    print("\n📦 Installing dependencies...")
     run_parallel(
-        f"wget -q {ENV_URL} -O /content/env.txt",
         "apt-get update -qq",
         check=False
     )
@@ -147,25 +121,22 @@ def main():
     except Exception as e:
         print(f"⚠ Skip drive.mount: {e}")
     
-    # 5. Load environment variables (with security whitelist)
-    load_env_file("/content/env.txt", ALLOWED_ENV_KEYS)
-    
-    # 6. Setup directories
+    # 5. Setup directories
     os.chdir("/content/ComfyUI")
     print("📁 cd /content/ComfyUI")
-    setup_directories(ALLOWED_ENV_KEYS)
+    setup_directories(MODEL_DIRS)
     
-    # 7. Install ComfyUI requirements
+    # 6. Install ComfyUI requirements
     print("\n📦 Installing ComfyUI requirements...")
     install_requirements("/content/ComfyUI/requirements.txt", quiet=True)
     
-    # 8. Setup custom_nodes
+    # 7. Setup custom_nodes
     custom_nodes = "/content/ComfyUI/custom_nodes"
     os.makedirs(custom_nodes, exist_ok=True)
     os.chdir(custom_nodes)
     print("📁 cd /content/ComfyUI/custom_nodes")
     
-    # 9. Clone ComfyUI-Manager
+    # 8. Clone ComfyUI-Manager
     mgr_dir = os.path.join(custom_nodes, "ComfyUI-Manager")
     if clone_if_missing(MANAGER_REPO, mgr_dir):
         install_requirements(os.path.join(mgr_dir, "requirements.txt"), quiet=True)

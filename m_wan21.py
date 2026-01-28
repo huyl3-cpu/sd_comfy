@@ -4,7 +4,6 @@ def run(cmd):
     print(f"\n RUN: {cmd}")
     subprocess.run(cmd, shell=True, check=True)
 
-run("bash -c 'source /content/env.txt || true'")
 
 ### Large Files
 run(
