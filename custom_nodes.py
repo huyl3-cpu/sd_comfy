@@ -45,7 +45,7 @@ CUSTOM_NODES: List[Tuple[str, str, bool]] = [
 
 # Additional downloads
 EXTRA_DOWNLOADS = [
-    ("hf download banhkeomath2/sound --local-dir /content/ComfyUI/custom_nodes/ComfyUI-Custom-Scripts/web/js/assets", "sound assets"),
+    ("hf download banhkeomath2/sound --local-dir /content/ComfyUI/custom_nodes/ComfyUI-Custom-Scripts/web/js/assets --quiet", "sound assets"),
 ]
 
 MAX_PARALLEL_CLONES = 8
