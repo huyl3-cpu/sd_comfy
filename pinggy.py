@@ -171,6 +171,10 @@ def monitor_tunnel(token: str) -> None:
                 continue
             
             line_str = line.strip()
+            # 1. Filter out stats (RB: ..., SB: ...)
+            if "RB:" in line_str and "SB:" in line_str:
+                continue
+            
             output_buffer += line_str + "\n"
             line_count += 1
             
@@ -180,11 +184,23 @@ def monitor_tunnel(token: str) -> None:
             
             # Try to extract URL
             url = extract_tunnel_url(line_str)
-            if url and not tunnel_url:
-                tunnel_url = url
-                tunnel_ready = True
-                print(f"\n🎉 URL Found: {tunnel_url}")
-                break
+            if url:
+                # 2. Filter duplicate http if https exists later? 
+                # Actually, pinggy outputs both. We want to capture them.
+                # If it's http, we skip printing "URL Found" until we find https? 
+                # Or just prefer https.
+                
+                # Check if it is https
+                if url.startswith("https://"):
+                    if not tunnel_url:
+                        tunnel_url = url
+                        tunnel_ready = True
+                        print(f"\n\033[1;32m🎉 COMFYUI PUBLIC LINK: {tunnel_url}\033[0m")
+                        print(f"\033[1;30m(Click the link above to open ComfyUI)\033[0m\n")
+                        break
+                elif not tunnel_url:
+                     # It's http, keep looking for https briefly, or accept it if we don't find https
+                     pass
             
             # Check for success indicators
             if any(ind in line_str.lower() for ind in ["tunnel established", "forwarding", "connected"]):
@@ -201,7 +217,7 @@ def monitor_tunnel(token: str) -> None:
             if url:
                 tunnel_url = url
                 tunnel_ready = True
-                print(f"\n🎉 URL Found in buffer: {tunnel_url}")
+                print(f"\n\033[1;32m🎉 COMFYUI PUBLIC LINK: {tunnel_url}\033[0m")
     
     except Exception as e:
         print(f"❌ Monitor error: {e}")
