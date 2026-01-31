@@ -69,12 +69,10 @@ def run(cmd: str, check: bool = True, quiet: bool = False) -> Optional[subproces
 def clone_repo(repo_url: str, folder_name: str) -> bool:
     """Clone a repository with depth 1 if it doesn't exist."""
     if os.path.isdir(folder_name):
-        print(f"  ✓ {folder_name} (exists)")
         return True
     
     result = run(f"git clone --depth 1 -q {repo_url}", quiet=True)
     if result and result.returncode == 0:
-        print(f"  ✓ {folder_name} (cloned)")
         return True
     else:
         print(f"  ✗ {folder_name} (failed)")
