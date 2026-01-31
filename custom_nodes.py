@@ -49,8 +49,6 @@ EXTRA_DOWNLOADS = [
 ]
 
 MAX_PARALLEL_CLONES = 8
-MAX_PARALLEL_PIP = 4
-
 
 def run(cmd: str, check: bool = True, quiet: bool = False) -> Optional[subprocess.CompletedProcess]:
     """Run a shell command."""
@@ -83,29 +81,18 @@ def clone_repo(repo_url: str, folder_name: str) -> bool:
         return False
 
 
-def install_requirements(folder_name: str) -> bool:
-    """Install requirements.txt for a node if it exists."""
-    req_file = os.path.join(folder_name, "requirements.txt")
-    if not os.path.isfile(req_file):
-        return True
-    
-    result = run(
-        f'uv pip install -r "{req_file}" --quiet --system',
-        quiet=True
-    )
-    return result is not None and result.returncode == 0
-
-
-def clone_and_setup(node_info: Tuple[str, str, bool]) -> Tuple[str, bool, bool]:
-    """Clone a node and install its requirements. Returns (name, clone_success, pip_success)."""
+def setup_node(node_info: Tuple[str, str, bool]) -> Tuple[str, bool, Optional[str]]:
+    """Clone a node and check for requirements. Returns (name, clone_success, req_path)."""
     repo_url, folder_name, has_req = node_info
     clone_success = clone_repo(repo_url, folder_name)
-    pip_success = True
     
+    req_path = None
     if clone_success and has_req:
-        pip_success = install_requirements(folder_name)
+        possible_req = os.path.join(folder_name, "requirements.txt")
+        if os.path.isfile(possible_req):
+            req_path = possible_req
     
-    return (folder_name, clone_success, pip_success)
+    return (folder_name, clone_success, req_path)
 
 
 def main():
@@ -125,18 +112,16 @@ def main():
     # Phase 1: Parallel git clones
     print(f"📦 Cloning {len(CUSTOM_NODES)} repositories (parallel, max {MAX_PARALLEL_CLONES})...")
     
-    clone_results = {}
+    requirements_files = []
+    
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_PARALLEL_CLONES) as executor:
-        futures = {executor.submit(clone_and_setup, node): node[1] for node in CUSTOM_NODES}
+        futures = {executor.submit(setup_node, node): node[1] for node in CUSTOM_NODES}
         for future in concurrent.futures.as_completed(futures):
-            name, clone_ok, pip_ok = future.result()
-            clone_results[name] = (clone_ok, pip_ok)
-    
-    # Summary
-    cloned = sum(1 for v in clone_results.values() if v[0])
-    pip_ok = sum(1 for v in clone_results.values() if v[1])
-    
-    print(f"\n📊 Summary: {cloned}/{len(CUSTOM_NODES)} cloned, {pip_ok}/{len(CUSTOM_NODES)} pip success")
+            name, clone_ok, req_path = future.result()
+            if start_req := req_path:
+                 requirements_files.append(req_path)
+
+    print(f"\n✅ Cloning complete.")
     
     # Phase 2: Extra downloads
     if EXTRA_DOWNLOADS:
@@ -145,11 +130,60 @@ def main():
             print(f"  → {desc}")
             run(cmd, check=False, quiet=True)
     
+    # Phase 3: Global Installation (Batch)
+    print("\n📦 Installing pip packages (Global Batch)...")
     
-    # Phase 3: Additional pip packages
-    print("\n📦 Installing additional pip packages...")
-    run(f'uv pip install watchdog vtracer torchsde replicate llama-cpp-python transformers --system', check=False)
-    run(f'uv pip install flash-attn --no-build-isolation --system', check=False)
+    # Build huge command
+    install_cmd = ["uv", "pip", "install", "--system"]
+    
+    # Add all requirements files
+    for r in requirements_files:
+        install_cmd.extend(["-r", r])
+        
+    # Add additional packages
+    additional_packages = [
+        "watchdog", "vtracer", "torchsde", "replicate", 
+        "llama-cpp-python", "transformers",
+        "flash-attn", 
+        "googletrans-py", "deep-translator", "argostranslate", 
+        "ctranslate2", "stanza", "sacremoses", "emoji"
+    ]
+    install_cmd.extend(additional_packages)
+    
+    # Run the big install
+    print(f"  → Installing {len(requirements_files)} requirements files and {len(additional_packages)} extra packages...")
+    
+    # We join manually for visual printing, but subprocess takes list ideally. 
+    # But run() takes string. Let's form the string carefully.
+    # Note: flash-attn might need --no-build-isolation, so we handle it separately or mix it?
+    # Mixing --no-build-isolation usually applies to all. Safe to run flash-attn separately?
+    # User had !pip install flash-attn --no-build-isolation.
+    # Let's separate flash-attn to be safe.
+    
+    # remove flash-attn from batch
+    main_packages = [p for p in additional_packages if p != "flash-attn"]
+    
+    cmd_str = f"uv pip install --system {' '.join(['-r ' + r for r in requirements_files])} {' '.join(main_packages)}"
+    run(cmd_str, check=False)
+    
+    # Install flash-attn separately
+    print("  → Installing flash-attn...")
+    run("uv pip install flash-attn --no-build-isolation --system", check=False)
+
+    # Install spacy model
+    print("\n📦 Installing Spacy model...")
+    run(f'uv pip install https://github.com/explosion/spacy-models/releases/download/xx_sent_ud_sm-3.8.0/xx_sent_ud_sm-3.8.0-py3-none-any.whl --system', check=False)
+
+    # Phase 4: Fix specific dependencies (Uninstall & Reinstall)
+    print("\n🔧 Fixing specific dependencies...")
+    run(f'uv pip uninstall onnx onnxruntime onnxruntime-gpu --system', check=False)
+    run(f'uv pip install onnxruntime-gpu --system', check=False)
+
+    run(f'uv pip uninstall opencv-python opencv-python-headless opencv-contrib-python-headless opencv-contrib-python --system', check=False)
+    run(f'uv pip install opencv-python opencv-python-headless opencv-contrib-python-headless opencv-contrib-python --system', check=False)
+
+    run(f'uv pip uninstall pynvml nvidia-ml-py --system', check=False)
+    run(f'uv pip install nvidia-ml-py --system', check=False)
 
     print("\n" + "=" * 50)
     print("🎉 Custom nodes installation complete!")
@@ -157,10 +191,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-else:
-    main()
-
-
-
-
-
