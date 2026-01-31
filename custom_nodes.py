@@ -63,10 +63,6 @@ def run(cmd: str, check: bool = True, quiet: bool = False) -> Optional[subproces
     except subprocess.CalledProcessError as e:
         return None
 
-    # Phase 3: Global Installation (Batch)
-    # print("\n📦 Installing pip packages (Global Batch)...")
-    
-    extra_pkgs = [None
 
 
 def clone_repo(repo_url: str, folder_name: str) -> bool:
@@ -136,7 +132,35 @@ def main():
         for cmd, desc in EXTRA_DOWNLOADS:
             # print(f"  → {desc}")
             run(cmd, check=False, quiet=True)
-        for uninstall, install in fix_cmds:
+
+    # Phase 3: Global Installation (Batch)
+    # print("\n📦 Installing pip packages (Global Batch)...")
+    
+    extra_pkgs = [
+        "packaging", "ninja", "rembg", "onnxruntime-gpu", "insightface",
+        "ffmpeg-python", "segment-anything", "pytube", "soundfile", "librosa",
+        "numba", "diffusers", "transformers", "matplotlib", "scikit-learn",
+        "scipy", "pandas", "opencv-python-headless", "imageio", "imageio-ffmpeg",
+        "einops", "torchsde", "kornia", "spandrel", "huggingface_hub"
+    ]
+    
+    pkg_str = " ".join(extra_pkgs)
+    run(f"uv pip install {pkg_str} --system", check=False, quiet=True)
+
+    # 2. Special installs
+    run("uv pip install flash-attn --no-build-isolation --system", check=False, quiet=True)
+    run(f'uv pip install https://github.com/explosion/spacy-models/releases/download/xx_sent_ud_sm-3.8.0/xx_sent_ud_sm-3.8.0-py3-none-any.whl --system', check=False, quiet=True)
+
+    # Phase 4: Fix specific dependencies
+    # print("\n🔧 Fixing specific dependencies...")
+    fix_cmds = [
+        ("protobuf", "protobuf==3.20.3"),
+        ("onnxruntime", "onnxruntime-gpu"),
+        ("torchaudio", "torchaudio==2.9.1"),
+        ("torchvision", "torchvision==0.24.1"),
+    ]
+
+    for uninstall, install in fix_cmds:
         run(f'uv pip uninstall {uninstall} --system', check=False, quiet=True)
         run(f'uv pip install {install} --system', check=False, quiet=True)
 
