@@ -133,57 +133,31 @@ def main():
     # Phase 3: Global Installation (Batch)
     print("\n📦 Installing pip packages (Global Batch)...")
     
-    # Build huge command
-    install_cmd = ["uv", "pip", "install", "--system"]
-    
-    # Add all requirements files
-    for r in requirements_files:
-        install_cmd.extend(["-r", r])
-        
-    # Add additional packages
-    additional_packages = [
-        "watchdog", "vtracer", "torchsde", "replicate", 
-        "llama-cpp-python", "transformers",
-        "flash-attn", 
-        "googletrans-py", "deep-translator", "argostranslate", 
-        "ctranslate2", "stanza", "sacremoses", "emoji"
+    extra_pkgs = [
+        "watchdog", "vtracer", "torchsde", "replicate", "llama-cpp-python", "transformers",
+        "googletrans-py", "deep-translator", "argostranslate", "ctranslate2", "stanza", "sacremoses", "emoji"
     ]
-    install_cmd.extend(additional_packages)
     
-    # Run the big install
-    print(f"  → Installing {len(requirements_files)} requirements files and {len(additional_packages)} extra packages...")
+    # 1. Main batch install (reqs + extras)
+    reqs_str = ' '.join(['-r ' + r for r in requirements_files])
+    pkgs_str = ' '.join(extra_pkgs)
+    run(f"uv pip install --system {reqs_str} {pkgs_str}", check=False)
     
-    # We join manually for visual printing, but subprocess takes list ideally. 
-    # But run() takes string. Let's form the string carefully.
-    # Note: flash-attn might need --no-build-isolation, so we handle it separately or mix it?
-    # Mixing --no-build-isolation usually applies to all. Safe to run flash-attn separately?
-    # User had !pip install flash-attn --no-build-isolation.
-    # Let's separate flash-attn to be safe.
-    
-    # remove flash-attn from batch
-    main_packages = [p for p in additional_packages if p != "flash-attn"]
-    
-    cmd_str = f"uv pip install --system {' '.join(['-r ' + r for r in requirements_files])} {' '.join(main_packages)}"
-    run(cmd_str, check=False)
-    
-    # Install flash-attn separately
-    print("  → Installing flash-attn...")
-    run("uv pip install flash-attn --no-build-isolation --system", check=False)
-
-    # Install spacy model
-    print("\n📦 Installing Spacy model...")
+    # 2. Special installs
+    run("uv pip install flash-attn --no-build-isolation --system", check=False) # Needs no-build-isolation
     run(f'uv pip install https://github.com/explosion/spacy-models/releases/download/xx_sent_ud_sm-3.8.0/xx_sent_ud_sm-3.8.0-py3-none-any.whl --system', check=False)
 
-    # Phase 4: Fix specific dependencies (Uninstall & Reinstall)
+    # Phase 4: Fix specific dependencies
     print("\n🔧 Fixing specific dependencies...")
-    run(f'uv pip uninstall onnx onnxruntime onnxruntime-gpu --system', check=False)
-    run(f'uv pip install onnxruntime-gpu --system', check=False)
-
-    run(f'uv pip uninstall opencv-python opencv-python-headless opencv-contrib-python-headless opencv-contrib-python --system', check=False)
-    run(f'uv pip install opencv-python opencv-python-headless opencv-contrib-python-headless opencv-contrib-python --system', check=False)
-
-    run(f'uv pip uninstall pynvml nvidia-ml-py --system', check=False)
-    run(f'uv pip install nvidia-ml-py --system', check=False)
+    fix_cmds = [
+        ("onnx onnxruntime onnxruntime-gpu", "onnxruntime-gpu"),
+        ("opencv-python opencv-python-headless opencv-contrib-python-headless opencv-contrib-python", "opencv-python opencv-python-headless opencv-contrib-python-headless opencv-contrib-python"),
+        ("pynvml nvidia-ml-py", "nvidia-ml-py")
+    ]
+    
+    for uninstall, install in fix_cmds:
+        run(f'uv pip uninstall {uninstall} --system', check=False)
+        run(f'uv pip install {install} --system', check=False)
 
     print("\n" + "=" * 50)
     print("🎉 Custom nodes installation complete!")
