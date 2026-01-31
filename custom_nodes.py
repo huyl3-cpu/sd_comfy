@@ -39,6 +39,7 @@ CUSTOM_NODES: List[Tuple[str, str, bool]] = [
     ("https://github.com/a-und-b/ComfyUI_Delay.git", "ComfyUI_Delay", False),
     ("https://github.com/huyl3-cpu/segment_wan21.git", "segment_wan21", True),
     ("https://github.com/kijai/ComfyUI-MelBandRoFormer.git", "ComfyUI-MelBandRoFormer", True),
+    ("https://github.com/huyl3-cpu/QwenTTS.git", "QwenTTS", True),
 ]
 
 # Additional downloads
