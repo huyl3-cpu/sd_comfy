@@ -160,6 +160,46 @@ def main():
     print("\n" + "=" * 50)
     print("🎉 Custom nodes installation complete!")
 
+    # Phase 5: Patch specific nodes
+    patch_ymc_node()
+
+
+def patch_ymc_node():
+    """Suppress ymc-node-suite startup message."""
+    target_file = os.path.join(os.getcwd(), "ymc-node-suite-comfyui", "__init__.py")
+    if not os.path.exists(target_file):
+        return
+    
+    try:
+        with open(target_file, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+            
+        new_lines = []
+        suppress = False
+        for line in lines:
+            # Detect start of the noisy block
+            if 'log_msg(msg_padd("=",60,"="))' in line and not suppress:
+                # Check next few lines to confirm it's the welcome block
+                suppress = True
+                new_lines.append(f"# {line}")
+                continue
+            
+            if suppress:
+                new_lines.append(f"# {line}")
+                # Detect end of block (it ends with same separator)
+                if 'log_msg(msg_padd("=",60,"="))' in line:
+                    suppress = False
+            else:
+                new_lines.append(line)
+        
+        with open(target_file, 'w', encoding='utf-8') as f:
+            f.writelines(new_lines)
+        print("🔧 Patched ymc-node-suite-comfyui to suppress output")
+            
+    except Exception as e:
+        print(f"⚠ Failed to patch ymc-node-suite: {e}")
+
+
 
 if __name__ == "__main__":
     main()
