@@ -100,26 +100,22 @@ def clone_and_setup(node_info: Tuple[str, str, bool]) -> Tuple[str, bool, bool]:
         pip_success = install_requirements(folder_name)
     
     
-    # Suppress YMC Node Logs
     if folder_name == "ymc-node-suite-comfyui":
         try:
             init_file = os.path.join(folder_name, "__init__.py")
             if os.path.isfile(init_file):
                 with open(init_file, "r", encoding="utf-8") as f:
                     content = f.read()
-                
-                # Comment out print statements
                 new_content = ""
                 for line in content.splitlines():
                     if "print" in line and ("-----" in line or "welocme" in line.lower() or "node counts" in line or "version:" in line or "node menu names" in line or "✅" in line):
                         new_content += "# " + line + "\n"
                     else:
                         new_content += line + "\n"
-                        
                 with open(init_file, "w", encoding="utf-8") as f:
                     f.write(new_content)
-        except Exception as e:
-            pass # Ignore errors during suppression
+        except Exception:
+            pass
 
     return (folder_name, clone_success, pip_success)
 
