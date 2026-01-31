@@ -66,7 +66,11 @@ def setup_directories(dirs: list) -> None:
         if not os.path.exists(path):
             os.makedirs(path, exist_ok=True)
             created += 1
-    print(f"✅ Created {created} model directories")
+    for path in dirs:
+        if not os.path.exists(path):
+            os.makedirs(path, exist_ok=True)
+            created += 1
+    # print(f"✅ Created {created} model directories")
 
 
 def clone_if_missing(repo_url: str, target_dir: str, depth: int = 1) -> bool:
@@ -75,8 +79,8 @@ def clone_if_missing(repo_url: str, target_dir: str, depth: int = 1) -> bool:
         print(f"✅ {os.path.basename(target_dir)} already exists, skip clone")
         return False
     
-    cmd = f"git clone --depth {depth} {repo_url} {target_dir}"
-    run(cmd, check=True)
+    cmd = f"git clone --depth {depth} -q {repo_url} {target_dir}"
+    run(cmd, check=True, quiet=True)
     return True
 
 
@@ -93,16 +97,17 @@ def install_requirements(requirements_path: str, quiet: bool = True) -> None:
 
 # ============ Main Setup ============
 def main():
-    print("🚀 SD Comfy - Optimized Init Script")
-    print("=" * 50)
+    # print("🚀 SD Comfy - Optimized Init Script")
+    # print("=" * 50)
     
     # 1. Setup base directory
     os.makedirs("/content", exist_ok=True)
     os.chdir("/content")
-    print("📁 cd /content")
+    os.chdir("/content")
+    # print("📁 cd /content")
     
     # 2. Install aria2
-    print("\n📦 Installing dependencies...")
+    # print("\n📦 Installing dependencies...")
     run_parallel(
         "apt-get update -qq",
         check=False
@@ -114,32 +119,36 @@ def main():
     clone_if_missing(COMFYUI_REPO, "/content/ComfyUI")
 
     # 3.1 Install specific PyTorch version
-    print("\n📦 Installing PyTorch dependencies...")
-    run(f'uv pip install torch==2.9.1 torchvision==0.24.1 torchaudio==2.9.1 torchcodec==0.9.1 --system', check=True)
+    # 3.1 Install specific PyTorch version
+    # print("\n📦 Installing PyTorch dependencies...")
+    run(f'uv pip install torch==2.9.1 torchvision==0.24.1 torchaudio==2.9.1 torchcodec==0.9.1 --system', check=True, quiet=True)
     
     # 4. Mount Google Drive (if available)
     try:
         from google.colab import drive
         if has_ipython_kernel():
             drive.mount("/content/drive")
-            print("✅ Google Drive mounted")
+        if has_ipython_kernel():
+            drive.mount("/content/drive")
+            # print("✅ Google Drive mounted")
     except Exception as e:
         print(f"⚠ Skip drive.mount: {e}")
     
     # 5. Setup directories
     os.chdir("/content/ComfyUI")
-    print("📁 cd /content/ComfyUI")
     setup_directories(MODEL_DIRS)
     
     # 6. Install ComfyUI requirements
-    print("\n📦 Installing ComfyUI requirements...")
+    # 6. Install ComfyUI requirements
+    # print("\n📦 Installing ComfyUI requirements...")
     install_requirements("/content/ComfyUI/requirements.txt", quiet=True)
     
     # 7. Setup custom_nodes
     custom_nodes = "/content/ComfyUI/custom_nodes"
     os.makedirs(custom_nodes, exist_ok=True)
     os.chdir(custom_nodes)
-    print("📁 cd /content/ComfyUI/custom_nodes")
+    os.chdir(custom_nodes)
+    # print("📁 cd /content/ComfyUI/custom_nodes")
     
     # 8. Clone ComfyUI-Manager
     mgr_dir = os.path.join(custom_nodes, "ComfyUI-Manager")
@@ -149,8 +158,8 @@ def main():
         # Still install requirements in case they changed
         install_requirements(os.path.join(mgr_dir, "requirements.txt"), quiet=True)
     
-    print("\n" + "=" * 50)
-    print("🎉 Init complete!")
+    # print("\n" + "=" * 50)
+    # print("🎉 Init complete!")
 
 
 if __name__ == "__main__":
