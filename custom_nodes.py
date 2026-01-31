@@ -91,12 +91,22 @@ def install_requirements(folder_name: str) -> bool:
 
 
 def install_recursive_requirements(root_folder: str) -> None:
-    """Recursively find and install requirements.txt files."""
+    """Recursively find and install requirements.txt files (Parallel Batch)."""
+    req_files = []
     for root, dirs, files in os.walk(root_folder):
         for file in files:
             if file == "requirements.txt":
-                req_path = os.path.join(root, file)
-                run(f'uv pip install -r "{req_path}" --system --quiet', quiet=True)
+                req_files.append(os.path.join(root, file))
+    
+    if req_files:
+        # Construct single uv command with multiple -r args
+        cmd_parts = ["uv", "pip", "install", "--system", "--quiet"]
+        for rf in req_files:
+            cmd_parts.append("-r")
+            cmd_parts.append(f'"{rf}"')
+        
+        final_cmd = " ".join(cmd_parts)
+        run(final_cmd, quiet=True)
 
 
 
