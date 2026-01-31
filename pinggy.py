@@ -175,32 +175,35 @@ def monitor_tunnel(token: str) -> None:
             if "RB:" in line_str and "SB:" in line_str:
                 continue
             
-            output_buffer += line_str + "\n"
-            line_count += 1
-            
-            # Print with redacted token
-            if line_str:
-                safe_print(f"🌐 Tunnel: {line_str}", token)
-            
             # Try to extract URL
             url = extract_tunnel_url(line_str)
+            
             if url:
-                # 2. Filter duplicate http if https exists later? 
-                # Actually, pinggy outputs both. We want to capture them.
-                # If it's http, we skip printing "URL Found" until we find https? 
-                # Or just prefer https.
-                
                 # Check if it is https
                 if url.startswith("https://"):
                     if not tunnel_url:
                         tunnel_url = url
                         tunnel_ready = True
-                        print(f"\n\033[1;32m🎉 COMFYUI PUBLIC LINK: {tunnel_url}\033[0m")
-                        print(f"\033[1;30m(Click the link above to open ComfyUI)\033[0m\n")
+                        print("\n" + "█" * 60)
+                        print("█" + " " * 58 + "█")
+                        print(f"█   \033[1;32mCOMFYUI PUBLIC URL\033[0m" + " " * (40) + "█")
+                        print("█" + " " * 58 + "█")
+                        print(f"█   \033[1;93m{tunnel_url}\033[0m")
+                        print("█" + " " * 58 + "█")
+                        print("█" + " " * 58 + "█")
+                        print("█   \033[1;30m(Click the link above to open ComfyUI)\033[0m" + " " * 20 + "█")
+                        print("█" + " " * 58 + "█")
+                        print("█" * 60 + "\n")
                         break
-                elif not tunnel_url:
-                     # It's http, keep looking for https briefly, or accept it if we don't find https
-                     pass
+                # If http, ignore it (don't print raw line either)
+                continue
+
+            output_buffer += line_str + "\n"
+            line_count += 1
+            
+            # Print other lines with redacted token
+            if line_str:
+                safe_print(f"🌐 Tunnel: {line_str}", token)
             
             # Check for success indicators
             if any(ind in line_str.lower() for ind in ["tunnel established", "forwarding", "connected"]):
