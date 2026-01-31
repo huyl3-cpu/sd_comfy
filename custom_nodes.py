@@ -151,18 +151,6 @@ def main():
     # Phase 3: Global Installation (Batch)
     print(f"\n📦 Installing pip packages from {len(all_requirements)} requirement files (Global Batch)...")
     
-    # 3.1 Custom Node Requirements
-    if all_requirements:
-        cmd_parts = ["uv", "pip", "install", "--system"]
-        for rf in all_requirements:
-            cmd_parts.append("-r")
-            cmd_parts.append(f'"{rf}"')
-            
-        final_cmd = " ".join(cmd_parts)
-        run(final_cmd, check=False, quiet=False)
-    
-    # 3.2 Global Extra Packages
-    print("\n📦 Installing extra packages...")
     extra_pkgs = [
         "packaging", "ninja", "rembg", "onnxruntime-gpu", "insightface",
         "ffmpeg-python", "segment-anything", "pytube", "soundfile", "librosa",
@@ -171,9 +159,21 @@ def main():
         "einops", "torchsde", "kornia", "spandrel", "huggingface_hub",
         "llama-cpp-python", "nvidia-ml-py"
     ]
+
+    cmd_parts = ["uv", "pip", "install", "--system"]
     
-    pkg_str = " ".join(extra_pkgs)
-    run(f"uv pip install {pkg_str} --system", check=False, quiet=False)
+    # Add requirements files
+    if all_requirements:
+        for rf in all_requirements:
+            cmd_parts.append("-r")
+            cmd_parts.append(f'"{rf}"')
+    
+    # Add extra packages
+    cmd_parts.extend(extra_pkgs)
+            
+    final_cmd = " ".join(cmd_parts)
+    run(final_cmd, check=False, quiet=False)
+    
 
     # Phase 2: Extra downloads (Run after installing huggingface_hub)
     if EXTRA_DOWNLOADS:
@@ -181,8 +181,8 @@ def main():
         for cmd, desc in EXTRA_DOWNLOADS:
             print(f"  → {desc}")
             # Ensure using huggingface-cli
-            if cmd.startswith("hf "):
-                cmd = cmd.replace("hf ", "huggingface-cli ", 1)
+            # if cmd.startswith("hf "):
+            #     cmd = cmd.replace("hf ", "huggingface-cli ", 1)
             run(cmd, check=False, quiet=False)
 
     # 2. Special installs
@@ -194,8 +194,6 @@ def main():
     fix_cmds = [
         ("protobuf", "protobuf==3.20.3"),
         ("onnxruntime", "onnxruntime-gpu"),
-        ("torchaudio", "torchaudio==2.9.1"),
-        ("torchvision", "torchvision==0.24.1"),
     ]
 
     for uninstall, install in fix_cmds:
