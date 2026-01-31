@@ -148,13 +148,6 @@ def main():
     # Summary
     print(f"\n📊 Summary: {cloned}/{len(CUSTOM_NODES)} cloned")
     
-    # Phase 2: Extra downloads
-    if EXTRA_DOWNLOADS:
-        print("\n📥 Extra downloads...")
-        for cmd, desc in EXTRA_DOWNLOADS:
-            print(f"  → {desc}")
-            run(cmd, check=False, quiet=False)
-
     # Phase 3: Global Installation (Batch)
     print(f"\n📦 Installing pip packages from {len(all_requirements)} requirement files (Global Batch)...")
     
@@ -181,6 +174,16 @@ def main():
     
     pkg_str = " ".join(extra_pkgs)
     run(f"uv pip install {pkg_str} --system", check=False, quiet=False)
+
+    # Phase 2: Extra downloads (Run after installing huggingface_hub)
+    if EXTRA_DOWNLOADS:
+        print("\n📥 Extra downloads...")
+        for cmd, desc in EXTRA_DOWNLOADS:
+            print(f"  → {desc}")
+            # Ensure using huggingface-cli
+            if cmd.startswith("hf "):
+                cmd = cmd.replace("hf ", "huggingface-cli ", 1)
+            run(cmd, check=False, quiet=False)
 
     # 2. Special installs
     run("uv pip install flash-attn --no-build-isolation --system", check=False, quiet=False)
