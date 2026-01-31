@@ -79,52 +79,43 @@ def clone_repo(repo_url: str, folder_name: str) -> bool:
         return False
 
 
-def install_requirements(folder_name: str) -> bool:
-    """Install requirements.txt for a node if it exists."""
-    req_file = os.path.join(folder_name, "requirements.txt")
-    if not os.path.isfile(req_file):
-        return True
+def get_requirements(folder_name: str) -> List[str]:
+    """Return list of requirements.txt paths for a node if it exists."""
+    req_files = []
     
-    result = run(
-        f'uv pip install -r "{req_file}" --system',
-        quiet=False
-    )
-    return result is not None and result.returncode == 0
+    # Standard requirements.txt
+    req_file = os.path.join(folder_name, "requirements.txt")
+    if os.path.isfile(req_file):
+        req_files.append(req_file)
+        
+    return req_files
 
 
-def install_recursive_requirements(root_folder: str) -> None:
-    """Recursively find and install requirements.txt files (Parallel Batch)."""
+def get_recursive_requirements(root_folder: str) -> List[str]:
+    """Recursively find requirements.txt files."""
     req_files = []
     for root, dirs, files in os.walk(root_folder):
         for file in files:
             if file == "requirements.txt":
                 req_files.append(os.path.join(root, file))
-    
-    if req_files:
-        # Construct single uv command with multiple -r args
-        cmd_parts = ["uv", "pip", "install", "--system"]
-        for rf in req_files:
-            cmd_parts.append("-r")
-            cmd_parts.append(f'"{rf}"')
-        
-        final_cmd = " ".join(cmd_parts)
-        run(final_cmd, quiet=False)
+    return req_files
 
 
-def clone_and_setup(node_info: Tuple[str, str, bool]) -> Tuple[str, bool, bool]:
-    """Clone a node and install its requirements. Returns (name, clone_success, pip_success)."""
+def clone_and_get_reqs(node_info: Tuple[str, str, bool]) -> Tuple[str, bool, List[str]]:
+    """Clone a node and collect its requirements paths. Returns (name, clone_success, req_paths)."""
     repo_url, folder_name, has_req = node_info
     clone_success = clone_repo(repo_url, folder_name)
-    pip_success = True
+    req_paths = []
     
-    if clone_success and has_req:
-        pip_success = install_requirements(folder_name)
+    if clone_success:
+        if has_req:
+            req_paths.extend(get_requirements(folder_name))
+        
+        # Special handling for AlekPet (recursive scanning)
+        if folder_name == "ComfyUI_Custom_Nodes_AlekPet":
+            req_paths.extend(get_recursive_requirements(folder_name))
 
-    # Special handling for AlekPet (recursive requirements)
-    if folder_name == "ComfyUI_Custom_Nodes_AlekPet":
-        install_recursive_requirements(folder_name)
-    
-    return (folder_name, clone_success, pip_success)
+    return (folder_name, clone_success, req_paths)
 
 
 def main():
@@ -141,19 +132,21 @@ def main():
     # Phase 1: Parallel git clones
     print(f"📦 Cloning {len(CUSTOM_NODES)} repositories (parallel, max {MAX_PARALLEL_CLONES})...")
     
+    all_requirements = []
     clone_results = {}
+    
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_PARALLEL_CLONES) as executor:
-        futures = {executor.submit(clone_and_setup, node): node[1] for node in CUSTOM_NODES}
+        futures = {executor.submit(clone_and_get_reqs, node): node[1] for node in CUSTOM_NODES}
         for future in concurrent.futures.as_completed(futures):
-            name, clone_ok, pip_ok = future.result()
-            clone_results[name] = (clone_ok, pip_ok)
+            name, clone_ok, reqs = future.result()
+            clone_results[name] = clone_ok
+            if clone_ok and reqs:
+                all_requirements.extend(reqs)
     
-    
-    cloned = sum(1 for v in clone_results.values() if v[0])
-    pip_ok = sum(1 for v in clone_results.values() if v[1])
+    cloned = sum(1 for v in clone_results.values() if v)
 
     # Summary
-    print(f"\n📊 Summary: {cloned}/{len(CUSTOM_NODES)} cloned, {pip_ok}/{len(CUSTOM_NODES)} pip success")
+    print(f"\n📊 Summary: {cloned}/{len(CUSTOM_NODES)} cloned")
     
     # Phase 2: Extra downloads
     if EXTRA_DOWNLOADS:
@@ -163,8 +156,20 @@ def main():
             run(cmd, check=False, quiet=False)
 
     # Phase 3: Global Installation (Batch)
-    print("\n📦 Installing pip packages (Global Batch)...")
+    print(f"\n📦 Installing pip packages from {len(all_requirements)} requirement files (Global Batch)...")
     
+    # 3.1 Custom Node Requirements
+    if all_requirements:
+        cmd_parts = ["uv", "pip", "install", "--system"]
+        for rf in all_requirements:
+            cmd_parts.append("-r")
+            cmd_parts.append(f'"{rf}"')
+            
+        final_cmd = " ".join(cmd_parts)
+        run(final_cmd, check=False, quiet=False)
+    
+    # 3.2 Global Extra Packages
+    print("\n📦 Installing extra packages...")
     extra_pkgs = [
         "packaging", "ninja", "rembg", "onnxruntime-gpu", "insightface",
         "ffmpeg-python", "segment-anything", "pytube", "soundfile", "librosa",
