@@ -85,8 +85,8 @@ def install_requirements(requirements_path: str, quiet: bool = True) -> None:
         return
     
     cmd = f'uv pip install -r "{requirements_path}" --system'
-    # if quiet:
-    #     cmd += " --quiet"
+    if quiet:
+        cmd += " --quiet"
     run(cmd, check=True, quiet=False)
 
 
@@ -116,8 +116,8 @@ def main():
 
     # 3.1 Install specific PyTorch version
     # 3.1 Install specific PyTorch version
-    print("\n📦 Installing PyTorch dependencies...")
-    run(f'uv pip install torch==2.9.1 torchvision==0.24.1 torchaudio==2.9.1 torchcodec==0.9.1 --system', check=True, quiet=False)
+    # print("\n📦 Installing PyTorch dependencies...")
+    run(f'uv pip install torch==2.9.1 torchvision==0.24.1 torchaudio==2.9.1 torchcodec==0.9.1 --system', check=True, quiet=True)
     
     # 4. Mount Google Drive (if available)
     try:
@@ -136,23 +136,23 @@ def main():
     
     # 6. Install ComfyUI requirements
     # 6. Install ComfyUI requirements
-    print("\n📦 Installing ComfyUI requirements...")
-    install_requirements("/content/ComfyUI/requirements.txt", quiet=False)
+    # print("\n📦 Installing ComfyUI requirements...")
+    install_requirements("/content/ComfyUI/requirements.txt", quiet=True)
     
     # 7. Setup custom_nodes
     custom_nodes = "/content/ComfyUI/custom_nodes"
     os.makedirs(custom_nodes, exist_ok=True)
     os.chdir(custom_nodes)
     os.chdir(custom_nodes)
-    print("📁 cd /content/ComfyUI/custom_nodes")
+    # print("📁 cd /content/ComfyUI/custom_nodes")
     
     # 8. Clone ComfyUI-Manager
     mgr_dir = os.path.join(custom_nodes, "ComfyUI-Manager")
     if clone_if_missing(MANAGER_REPO, mgr_dir):
-        install_requirements(os.path.join(mgr_dir, "requirements.txt"), quiet=False)
+        install_requirements(os.path.join(mgr_dir, "requirements.txt"), quiet=True)
     else:
         # Still install requirements in case they changed
-        install_requirements(os.path.join(mgr_dir, "requirements.txt"), quiet=False)
+        install_requirements(os.path.join(mgr_dir, "requirements.txt"), quiet=True)
     
     print("\n" + "=" * 50)
     print("🎉 Init complete!")

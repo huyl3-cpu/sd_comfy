@@ -149,7 +149,7 @@ def main():
     print(f"\n📊 Summary: {cloned}/{len(CUSTOM_NODES)} cloned")
     
     # Phase 3: Global Installation (Batch)
-    print(f"\n📦 Installing pip packages from {len(all_requirements)} requirement files (Global Batch)...")
+    # print(f"\n📦 Installing pip packages from {len(all_requirements)} requirement files (Global Batch)...")
     
     extra_pkgs = [
         "packaging", "ninja", "rembg", "onnxruntime-gpu", "insightface",
@@ -172,7 +172,7 @@ def main():
     cmd_parts.extend(extra_pkgs)
             
     final_cmd = " ".join(cmd_parts)
-    run(final_cmd, check=False, quiet=False)
+    run(final_cmd, check=False, quiet=True)
     
 
     # Phase 2: Extra downloads (Run after installing huggingface_hub)
