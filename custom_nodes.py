@@ -72,7 +72,7 @@ def clone_repo(repo_url: str, folder_name: str) -> bool:
     if os.path.isdir(folder_name):
         return True
     
-    result = run(f"git clone --depth 1 -q {repo_url}", quiet=False)
+    result = run(f"git clone --depth 1 -q {repo_url}", quiet=True)
     if result and result.returncode == 0:
         return True
     else:
@@ -123,14 +123,14 @@ def main():
     print("=" * 50)
     
     # 0. Install uv
-    print("📦 Checking uv...")
+    # print("📦 Checking uv...")
     custom_nodes_dir = "/content/ComfyUI/custom_nodes"
     os.makedirs(custom_nodes_dir, exist_ok=True)
     os.chdir(custom_nodes_dir)
-    print(f"📁 cd {custom_nodes_dir}\n")
+    # print(f"📁 cd {custom_nodes_dir}\n")
     
     # Phase 1: Parallel git clones
-    print(f"📦 Cloning {len(CUSTOM_NODES)} repositories (parallel, max {MAX_PARALLEL_CLONES})...")
+    # print(f"📦 Cloning {len(CUSTOM_NODES)} repositories (parallel, max {MAX_PARALLEL_CLONES})...")
     
     all_requirements = []
     clone_results = {}
