@@ -111,6 +111,10 @@ def main():
     
     # 3. Clone ComfyUI
     clone_if_missing(COMFYUI_REPO, "/content/ComfyUI")
+
+    # 3.1 Install specific PyTorch version
+    print("\n📦 Installing PyTorch dependencies...")
+    run(f'"{sys.executable}" -m pip install torch==2.9.1 torchvision==0.24.1 torchaudio==2.9.1 torchcodec==0.9.1', check=True)
     
     # 4. Mount Google Drive (if available)
     try:

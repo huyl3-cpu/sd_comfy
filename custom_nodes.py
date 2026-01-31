@@ -40,6 +40,7 @@ CUSTOM_NODES: List[Tuple[str, str, bool]] = [
     ("https://github.com/huyl3-cpu/segment_wan21.git", "segment_wan21", True),
     ("https://github.com/kijai/ComfyUI-MelBandRoFormer.git", "ComfyUI-MelBandRoFormer", True),
     ("https://github.com/SeanScripts/ComfyUI-Unload-Model.git", "ComfyUI-Unload-Model", False),
+    ("https://github.com/huyl3-cpu/QwenTTS.git", "QwenTTS", True),
 ]
 
 # Additional downloads
@@ -140,6 +141,12 @@ def main():
             print(f"  → {desc}")
             run(cmd, check=False, quiet=True)
     
+    
+    # Phase 3: Additional pip packages
+    print("\n📦 Installing additional pip packages...")
+    run(f'"{sys.executable}" -m pip install watchdog vtracer torchsde replicate llama-cpp-python transformers', check=False)
+    run(f'"{sys.executable}" -m pip install flash-attn --no-build-isolation', check=False)
+
     print("\n" + "=" * 50)
     print("🎉 Custom nodes installation complete!")
 
