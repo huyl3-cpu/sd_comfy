@@ -41,38 +41,14 @@ def run_parallel(*commands, check: bool = False) -> list:
     """Run multiple commands in parallel using ThreadPoolExecutor."""
     results = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(commands)) as executor:
-        futures = {executor.submit(run, cmd, check, True): cmd for cmd in commands}
+        futures = {executor.submit(run, cmd, check, False): cmd for cmd in commands}
         for future in concurrent.futures.as_completed(futures):
             try:
                 results.append(future.result())
             except Exception as e:
                 print(f"⚠ Command failed: {e}")
     return results
-
-
-def has_ipython_kernel() -> bool:
-    """Check if running in IPython/Jupyter environment."""
-    try:
-        from IPython import get_ipython
-        return get_ipython() is not None
-    except Exception:
-        return False
-
-
-def setup_directories(dirs: list) -> None:
-    """Create model directories."""
-    created = 0
-    for path in dirs:
-        if not os.path.exists(path):
-            os.makedirs(path, exist_ok=True)
-            created += 1
-    for path in dirs:
-        if not os.path.exists(path):
-            os.makedirs(path, exist_ok=True)
-            created += 1
-    # print(f"✅ Created {created} model directories")
-
-
+    
 def clone_if_missing(repo_url: str, target_dir: str, depth: int = 1) -> bool:
     """Clone a git repository if it doesn't exist. Returns True if cloned."""
     if os.path.isdir(target_dir):
@@ -80,7 +56,7 @@ def clone_if_missing(repo_url: str, target_dir: str, depth: int = 1) -> bool:
         return False
     
     cmd = f"git clone --depth {depth} -q {repo_url} {target_dir}"
-    run(cmd, check=True, quiet=True)
+    run(cmd, check=True, quiet=False)
     return True
 
 
@@ -90,39 +66,39 @@ def install_requirements(requirements_path: str, quiet: bool = True) -> None:
         return
     
     cmd = f'uv pip install -r "{requirements_path}" --system'
-    if quiet:
-        cmd += " --quiet"
-    run(cmd, check=True, quiet=quiet)
+    # if quiet:
+    #     cmd += " --quiet"
+    run(cmd, check=True, quiet=False)
 
 
 # ============ Main Setup ============
 def main():
     print("Đang cài đặt custom_nodes và model, quá trình diễn ra trong khoảng 3 - 5 phút")
-    # print("🚀 SD Comfy - Optimized Init Script")
-    # print("=" * 50)
+    print("🚀 SD Comfy - Optimized Init Script")
+    print("=" * 50)
     
     # 1. Setup base directory
     os.makedirs("/content", exist_ok=True)
     os.chdir("/content")
     os.chdir("/content")
-    # print("📁 cd /content")
+    print("📁 cd /content")
     
     # 2. Install aria2
-    # print("\n📦 Installing dependencies...")
+    print("\n📦 Installing dependencies...")
     run_parallel(
         "apt-get update -qq",
         check=False
     )
-    run("apt-get install -y -qq aria2", check=False, quiet=True)
-    run("pip install uv", check=False, quiet=True)
+    run("apt-get install -y -qq aria2", check=False, quiet=False)
+    run("pip install uv", check=False, quiet=False)
     
     # 3. Clone ComfyUI
     clone_if_missing(COMFYUI_REPO, "/content/ComfyUI")
 
     # 3.1 Install specific PyTorch version
     # 3.1 Install specific PyTorch version
-    # print("\n📦 Installing PyTorch dependencies...")
-    run(f'uv pip install torch==2.9.1 torchvision==0.24.1 torchaudio==2.9.1 torchcodec==0.9.1 --system', check=True, quiet=True)
+    print("\n📦 Installing PyTorch dependencies...")
+    run(f'uv pip install torch==2.9.1 torchvision==0.24.1 torchaudio==2.9.1 torchcodec==0.9.1 --system', check=True, quiet=False)
     
     # 4. Mount Google Drive (if available)
     try:
@@ -131,7 +107,7 @@ def main():
             drive.mount("/content/drive")
         if has_ipython_kernel():
             drive.mount("/content/drive")
-            # print("✅ Google Drive mounted")
+            print("✅ Google Drive mounted")
     except Exception as e:
         print(f"⚠ Skip drive.mount: {e}")
     
@@ -141,26 +117,26 @@ def main():
     
     # 6. Install ComfyUI requirements
     # 6. Install ComfyUI requirements
-    # print("\n📦 Installing ComfyUI requirements...")
-    install_requirements("/content/ComfyUI/requirements.txt", quiet=True)
+    print("\n📦 Installing ComfyUI requirements...")
+    install_requirements("/content/ComfyUI/requirements.txt", quiet=False)
     
     # 7. Setup custom_nodes
     custom_nodes = "/content/ComfyUI/custom_nodes"
     os.makedirs(custom_nodes, exist_ok=True)
     os.chdir(custom_nodes)
     os.chdir(custom_nodes)
-    # print("📁 cd /content/ComfyUI/custom_nodes")
+    print("📁 cd /content/ComfyUI/custom_nodes")
     
     # 8. Clone ComfyUI-Manager
     mgr_dir = os.path.join(custom_nodes, "ComfyUI-Manager")
     if clone_if_missing(MANAGER_REPO, mgr_dir):
-        install_requirements(os.path.join(mgr_dir, "requirements.txt"), quiet=True)
+        install_requirements(os.path.join(mgr_dir, "requirements.txt"), quiet=False)
     else:
         # Still install requirements in case they changed
-        install_requirements(os.path.join(mgr_dir, "requirements.txt"), quiet=True)
+        install_requirements(os.path.join(mgr_dir, "requirements.txt"), quiet=False)
     
-    # print("\n" + "=" * 50)
-    # print("🎉 Init complete!")
+    print("\n" + "=" * 50)
+    print("🎉 Init complete!")
 
 
 if __name__ == "__main__":

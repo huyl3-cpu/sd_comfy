@@ -53,6 +53,8 @@ MAX_PARALLEL_PIP = 4
 def run(cmd: str, check: bool = True, quiet: bool = False) -> Optional[subprocess.CompletedProcess]:
     """Run a shell command."""
     try:
+        if not quiet:
+            print(f"\n$ {cmd}")
         return subprocess.run(
             cmd, 
             shell=True, 
@@ -70,7 +72,7 @@ def clone_repo(repo_url: str, folder_name: str) -> bool:
     if os.path.isdir(folder_name):
         return True
     
-    result = run(f"git clone --depth 1 -q {repo_url}", quiet=True)
+    result = run(f"git clone --depth 1 -q {repo_url}", quiet=False)
     if result and result.returncode == 0:
         return True
     else:
@@ -84,8 +86,8 @@ def install_requirements(folder_name: str) -> bool:
         return True
     
     result = run(
-        f'uv pip install -r "{req_file}" --system --quiet',
-        quiet=True
+        f'uv pip install -r "{req_file}" --system',
+        quiet=False
     )
     return result is not None and result.returncode == 0
 
@@ -100,14 +102,13 @@ def install_recursive_requirements(root_folder: str) -> None:
     
     if req_files:
         # Construct single uv command with multiple -r args
-        cmd_parts = ["uv", "pip", "install", "--system", "--quiet"]
+        cmd_parts = ["uv", "pip", "install", "--system"]
         for rf in req_files:
             cmd_parts.append("-r")
             cmd_parts.append(f'"{rf}"')
         
         final_cmd = " ".join(cmd_parts)
-        run(final_cmd, quiet=True)
-
+        run(final_cmd, quiet=False)
 
 
 def clone_and_setup(node_info: Tuple[str, str, bool]) -> Tuple[str, bool, bool]:
@@ -123,40 +124,22 @@ def clone_and_setup(node_info: Tuple[str, str, bool]) -> Tuple[str, bool, bool]:
     if folder_name == "ComfyUI_Custom_Nodes_AlekPet":
         install_recursive_requirements(folder_name)
     
-    
-    if folder_name == "ymc-node-suite-comfyui":
-        try:
-            init_file = os.path.join(folder_name, "__init__.py")
-            if os.path.isfile(init_file):
-                with open(init_file, "r", encoding="utf-8") as f:
-                    content = f.read()
-                new_content = ""
-                for line in content.splitlines():
-                    if "print" in line and ("-----" in line or "welocme" in line.lower() or "node counts" in line or "version:" in line or "node menu names" in line or "✅" in line):
-                        new_content += "# " + line + "\n"
-                    else:
-                        new_content += line + "\n"
-                with open(init_file, "w", encoding="utf-8") as f:
-                    f.write(new_content)
-        except Exception:
-            pass
-
     return (folder_name, clone_success, pip_success)
 
 
 def main():
-    # print("🚀 SD Comfy - Custom Nodes Installer (Optimized)")
-    # print("=" * 50)
+    print("🚀 SD Comfy - Custom Nodes Installer (Optimized)")
+    print("=" * 50)
     
     # 0. Install uv
-    # print("📦 Checking uv...")custom_nodes directory
+    print("📦 Checking uv...")
     custom_nodes_dir = "/content/ComfyUI/custom_nodes"
     os.makedirs(custom_nodes_dir, exist_ok=True)
     os.chdir(custom_nodes_dir)
-    # print(f"📁 cd {custom_nodes_dir}\n")
+    print(f"📁 cd {custom_nodes_dir}\n")
     
     # Phase 1: Parallel git clones
-    # print(f"📦 Cloning {len(CUSTOM_NODES)} repositories (parallel, max {MAX_PARALLEL_CLONES})...")
+    print(f"📦 Cloning {len(CUSTOM_NODES)} repositories (parallel, max {MAX_PARALLEL_CLONES})...")
     
     clone_results = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_PARALLEL_CLONES) as executor:
@@ -174,13 +157,13 @@ def main():
     
     # Phase 2: Extra downloads
     if EXTRA_DOWNLOADS:
-        # print("\n📥 Extra downloads...")
+        print("\n📥 Extra downloads...")
         for cmd, desc in EXTRA_DOWNLOADS:
-            # print(f"  → {desc}")
-            run(cmd, check=False, quiet=True)
+            print(f"  → {desc}")
+            run(cmd, check=False, quiet=False)
 
     # Phase 3: Global Installation (Batch)
-    # print("\n📦 Installing pip packages (Global Batch)...")
+    print("\n📦 Installing pip packages (Global Batch)...")
     
     extra_pkgs = [
         "packaging", "ninja", "rembg", "onnxruntime-gpu", "insightface",
@@ -192,14 +175,14 @@ def main():
     ]
     
     pkg_str = " ".join(extra_pkgs)
-    run(f"uv pip install {pkg_str} --system", check=False, quiet=True)
+    run(f"uv pip install {pkg_str} --system", check=False, quiet=False)
 
     # 2. Special installs
-    run("uv pip install flash-attn --no-build-isolation --system", check=False, quiet=True)
-    run(f'uv pip install https://github.com/explosion/spacy-models/releases/download/xx_sent_ud_sm-3.8.0/xx_sent_ud_sm-3.8.0-py3-none-any.whl --system', check=False, quiet=True)
+    run("uv pip install flash-attn --no-build-isolation --system", check=False, quiet=False)
+    run(f'uv pip install https://github.com/explosion/spacy-models/releases/download/xx_sent_ud_sm-3.8.0/xx_sent_ud_sm-3.8.0-py3-none-any.whl --system', check=False, quiet=False)
 
     # Phase 4: Fix specific dependencies
-    # print("\n🔧 Fixing specific dependencies...")
+    print("\n🔧 Fixing specific dependencies...")
     fix_cmds = [
         ("protobuf", "protobuf==3.20.3"),
         ("onnxruntime", "onnxruntime-gpu"),
@@ -208,11 +191,11 @@ def main():
     ]
 
     for uninstall, install in fix_cmds:
-        run(f'uv pip uninstall {uninstall} --system', check=False, quiet=True)
-        run(f'uv pip install {install} --system', check=False, quiet=True)
+        run(f'uv pip uninstall {uninstall} --system', check=False, quiet=False)
+        run(f'uv pip install {install} --system', check=False, quiet=False)
 
-    # print("\n" + "=" * 50)
-    # print("🎉 Custom nodes installation complete!")
+    print("\n" + "=" * 50)
+    print("🎉 Custom nodes installation complete!")
 
 
 if __name__ == "__main__":
