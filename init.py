@@ -28,9 +28,9 @@ MODEL_DIRS = [
 ]
 
 
-def run(cmd: str, check: bool = True, quiet: bool = False) -> subprocess.CompletedProcess:
+def run(cmd: str, check: bool = True, quiet: bool = False, print_cmd: bool = True) -> subprocess.CompletedProcess:
     """Run a shell command with optional quiet mode."""
-    if not quiet:
+    if not quiet and print_cmd:
         print(f"\n$ {cmd}")
     return subprocess.run(cmd, shell=True, check=check, 
                          stdout=subprocess.DEVNULL if quiet else None,
@@ -85,9 +85,9 @@ def install_requirements(requirements_path: str, quiet: bool = True) -> None:
         return
     
     cmd = f'uv pip install -r "{requirements_path}" --system'
-    if quiet:
-        cmd += " --quiet"
-    run(cmd, check=True, quiet=False)
+    # if quiet:
+    #     cmd += " --quiet"
+    run(cmd, check=True, quiet=False, print_cmd=False)
 
 
 # ============ Main Setup ============

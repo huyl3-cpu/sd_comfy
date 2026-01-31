@@ -50,10 +50,10 @@ MAX_PARALLEL_CLONES = 8
 MAX_PARALLEL_PIP = 4
 
 
-def run(cmd: str, check: bool = True, quiet: bool = False) -> Optional[subprocess.CompletedProcess]:
+def run(cmd: str, check: bool = True, quiet: bool = False, print_cmd: bool = True) -> Optional[subprocess.CompletedProcess]:
     """Run a shell command."""
     try:
-        if not quiet:
+        if not quiet and print_cmd:
             print(f"\n$ {cmd}")
         return subprocess.run(
             cmd, 
@@ -172,7 +172,7 @@ def main():
     cmd_parts.extend(extra_pkgs)
             
     final_cmd = " ".join(cmd_parts)
-    run(final_cmd, check=False, quiet=True)
+    run(final_cmd, check=False, quiet=False, print_cmd=False)
     
 
     # Phase 2: Extra downloads (Run after installing huggingface_hub)
