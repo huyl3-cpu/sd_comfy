@@ -113,7 +113,7 @@ def main():
         check=False
     )
     run("apt-get install -y -qq aria2", check=False, quiet=True)
-    run("pip install uv", check=False)
+    run("pip install uv", check=False, quiet=True)
     
     # 3. Clone ComfyUI
     clone_if_missing(COMFYUI_REPO, "/content/ComfyUI")
