@@ -123,6 +123,10 @@ def main():
             name, clone_ok, pip_ok = future.result()
             clone_results[name] = (clone_ok, pip_ok)
     
+    
+    cloned = sum(1 for v in clone_results.values() if v[0])
+    pip_ok = sum(1 for v in clone_results.values() if v[1])
+
     # Summary
     print(f"\n📊 Summary: {cloned}/{len(CUSTOM_NODES)} cloned, {pip_ok}/{len(CUSTOM_NODES)} pip success")
     
