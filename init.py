@@ -49,6 +49,25 @@ def run_parallel(*commands, check: bool = False) -> list:
                 print(f"⚠ Command failed: {e}")
     return results
     
+def has_ipython_kernel() -> bool:
+    """Check if running in IPython/Jupyter environment."""
+    try:
+        from IPython import get_ipython
+        return get_ipython() is not None
+    except Exception:
+        return False
+
+
+def setup_directories(dirs: list) -> None:
+    """Create model directories."""
+    created = 0
+    for path in dirs:
+        if not os.path.exists(path):
+            os.makedirs(path, exist_ok=True)
+            created += 1
+    # print(f"✅ Created {created} model directories")
+
+
 def clone_if_missing(repo_url: str, target_dir: str, depth: int = 1) -> bool:
     """Clone a git repository if it doesn't exist. Returns True if cloned."""
     if os.path.isdir(target_dir):
