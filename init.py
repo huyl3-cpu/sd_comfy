@@ -97,6 +97,7 @@ def install_requirements(requirements_path: str, quiet: bool = True) -> None:
 
 # ============ Main Setup ============
 def main():
+    print("Đang cài đặt custom_nodes và model, quá trình diễn ra trong khoảng 3 - 5 phút")
     # print("🚀 SD Comfy - Optimized Init Script")
     # print("=" * 50)
     
