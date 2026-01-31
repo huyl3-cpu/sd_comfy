@@ -157,7 +157,7 @@ def main():
         "numba", "diffusers", "transformers", "matplotlib", "scikit-learn",
         "scipy", "pandas", "opencv-python-headless", "imageio", "imageio-ffmpeg",
         "einops", "torchsde", "kornia", "spandrel", "huggingface_hub",
-        "llama-cpp-python", "nvidia-ml-py"
+        "llama-cpp-python", "nvidia-ml-py", "av"
     ]
 
     cmd_parts = ["uv", "pip", "install", "--system"]
