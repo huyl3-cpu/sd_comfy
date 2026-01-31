@@ -163,7 +163,8 @@ def main():
         "ffmpeg-python", "segment-anything", "pytube", "soundfile", "librosa",
         "numba", "diffusers", "transformers", "matplotlib", "scikit-learn",
         "scipy", "pandas", "opencv-python-headless", "imageio", "imageio-ffmpeg",
-        "einops", "torchsde", "kornia", "spandrel", "huggingface_hub"
+        "einops", "torchsde", "kornia", "spandrel", "huggingface_hub",
+        "llama-cpp-python", "nvidia-ml-py", "sageattention"
     ]
     
     pkg_str = " ".join(extra_pkgs)
