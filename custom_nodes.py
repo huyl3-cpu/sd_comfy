@@ -191,9 +191,13 @@ def main():
 
     # Phase 4: Fix specific dependencies
     print("\n🔧 Fixing specific dependencies...")
+    
+    # Force clean install of onnxruntime-gpu
+    run("uv pip uninstall onnxruntime onnxruntime-gpu --system", check=False, quiet=True)
+    run("uv pip install onnxruntime-gpu --system", check=False, quiet=True)
+
     fix_cmds = [
         ("protobuf", "protobuf==3.20.3"),
-        ("onnxruntime", "onnxruntime-gpu"),
     ]
 
     for uninstall, install in fix_cmds:
