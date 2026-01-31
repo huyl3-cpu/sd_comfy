@@ -90,6 +90,16 @@ def install_requirements(folder_name: str) -> bool:
     return result is not None and result.returncode == 0
 
 
+def install_recursive_requirements(root_folder: str) -> None:
+    """Recursively find and install requirements.txt files."""
+    for root, dirs, files in os.walk(root_folder):
+        for file in files:
+            if file == "requirements.txt":
+                req_path = os.path.join(root, file)
+                run(f'"{sys.executable}" -m pip install -r "{req_path}" --quiet --disable-pip-version-check', quiet=True)
+
+
+
 def clone_and_setup(node_info: Tuple[str, str, bool]) -> Tuple[str, bool, bool]:
     """Clone a node and install its requirements. Returns (name, clone_success, pip_success)."""
     repo_url, folder_name, has_req = node_info
@@ -98,6 +108,10 @@ def clone_and_setup(node_info: Tuple[str, str, bool]) -> Tuple[str, bool, bool]:
     
     if clone_success and has_req:
         pip_success = install_requirements(folder_name)
+
+    # Special handling for AlekPet (recursive requirements)
+    if folder_name == "ComfyUI_Custom_Nodes_AlekPet":
+        install_recursive_requirements(folder_name)
     
     
     if folder_name == "ymc-node-suite-comfyui":
