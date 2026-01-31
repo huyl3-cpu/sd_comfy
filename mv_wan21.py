@@ -2,7 +2,7 @@ import subprocess
 import os
 
 def run(cmd):
-    print(f"\nRUN: {cmd}")
+    # print(f"\nRUN: {cmd}")
     subprocess.run(cmd, shell=True, check=True)
 
 source_root = "/content/wan21"
