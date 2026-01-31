@@ -84,7 +84,7 @@ def install_requirements(folder_name: str) -> bool:
         return True
     
     result = run(
-        f'"{sys.executable}" -m pip install -r "{req_file}" --quiet --disable-pip-version-check',
+        f'uv pip install -r "{req_file}" --system --quiet',
         quiet=True
     )
     return result is not None and result.returncode == 0
@@ -96,7 +96,7 @@ def install_recursive_requirements(root_folder: str) -> None:
         for file in files:
             if file == "requirements.txt":
                 req_path = os.path.join(root, file)
-                run(f'"{sys.executable}" -m pip install -r "{req_path}" --quiet --disable-pip-version-check', quiet=True)
+                run(f'uv pip install -r "{req_path}" --system --quiet', quiet=True)
 
 
 
