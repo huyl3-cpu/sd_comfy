@@ -107,7 +107,7 @@ def main():
         "apt-get update -qq",
         check=False
     )
-    run("apt-get install -y -qq aria2", check=False)
+    run("apt-get install -y -qq aria2", check=False, quiet=True)
     run("pip install uv", check=False)
     
     # 3. Clone ComfyUI
