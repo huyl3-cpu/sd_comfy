@@ -90,7 +90,7 @@ def install_requirements(folder_name: str) -> bool:
         return True
     
     result = run(
-        f'"{sys.executable}" -m pip install -r "{req_file}" --quiet --disable-pip-version-check',
+        f'uv pip install -r "{req_file}" --quiet --system',
         quiet=True
     )
     return result is not None and result.returncode == 0
@@ -111,6 +111,10 @@ def clone_and_setup(node_info: Tuple[str, str, bool]) -> Tuple[str, bool, bool]:
 def main():
     print("🚀 SD Comfy - Custom Nodes Installer (Optimized)")
     print("=" * 50)
+    
+    # 0. Install uv
+    print("📦 Checking uv...")
+    run(f'"{sys.executable}" -m pip install uv', check=False, quiet=True)
     
     # Ensure we're in custom_nodes directory
     custom_nodes_dir = "/content/ComfyUI/custom_nodes"
@@ -144,8 +148,8 @@ def main():
     
     # Phase 3: Additional pip packages
     print("\n📦 Installing additional pip packages...")
-    run(f'"{sys.executable}" -m pip install watchdog vtracer torchsde replicate llama-cpp-python transformers', check=False)
-    run(f'"{sys.executable}" -m pip install flash-attn --no-build-isolation', check=False)
+    run(f'uv pip install watchdog vtracer torchsde replicate llama-cpp-python transformers --system', check=False)
+    run(f'uv pip install flash-attn --no-build-isolation --system', check=False)
 
     print("\n" + "=" * 50)
     print("🎉 Custom nodes installation complete!")

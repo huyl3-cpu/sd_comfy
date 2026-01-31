@@ -85,9 +85,9 @@ def install_requirements(requirements_path: str, quiet: bool = True) -> None:
     if not os.path.isfile(requirements_path):
         return
     
-    cmd = f'"{sys.executable}" -m pip install -r "{requirements_path}"'
+    cmd = f'uv pip install -r "{requirements_path}" --system'
     if quiet:
-        cmd += " --quiet --disable-pip-version-check"
+        cmd += " --quiet"
     run(cmd, check=True, quiet=quiet)
 
 
@@ -108,13 +108,14 @@ def main():
         check=False
     )
     run("apt-get install -y -qq aria2", check=False)
+    run("pip install uv", check=False)
     
     # 3. Clone ComfyUI
     clone_if_missing(COMFYUI_REPO, "/content/ComfyUI")
 
     # 3.1 Install specific PyTorch version
     print("\n📦 Installing PyTorch dependencies...")
-    run(f'"{sys.executable}" -m pip install torch==2.9.1 torchvision==0.24.1 torchaudio==2.9.1 torchcodec==0.9.1', check=True)
+    run(f'uv pip install torch==2.9.1 torchvision==0.24.1 torchaudio==2.9.1 torchcodec==0.9.1 --system', check=True)
     
     # 4. Mount Google Drive (if available)
     try:
