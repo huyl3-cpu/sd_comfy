@@ -113,7 +113,7 @@ def clone_repo(repo_url: str, folder_name: str) -> bool:
 
 # ============ Main Setup ============
 def main():
-    print("Đang cài đặt custom_nodes và model, quá trình diễn ra trong khoảng 3 - 5 phút")
+    print("Đang cài đặt custom_nodes và model, quá trình diễn ra trong khoảng 5 - 7 phút")
     print("🚀 SD Comfy - Unified Installation Script")
     print("=" * 50)
     
