@@ -68,7 +68,7 @@ MAX_PARALLEL_CLONES = 8
 
 
 # ============ Helper Functions ============
-def run(cmd: str, check: bool = True, quiet: bool = False, print_cmd: bool = True) -> Optional[subprocess.CompletedProcess]:
+def run(cmd: str, check: bool = True, quiet: bool = False, print_cmd: bool = False) -> Optional[subprocess.CompletedProcess]:
     """Run a shell command."""
     try:
         if not quiet and print_cmd:
