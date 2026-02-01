@@ -186,7 +186,7 @@ def main():
     
     # 9. Special installs
     print("📦 Special installs...")
-    run("uv pip install flash-attn --no-build-isolation --system", check=False, quiet=False)
+    # run("uv pip install flash-attn --no-build-isolation --system", check=False, quiet=False)  # Too slow (5-10 min), removed
     run('uv pip install https://github.com/explosion/spacy-models/releases/download/xx_sent_ud_sm-3.8.0/xx_sent_ud_sm-3.8.0-py3-none-any.whl --system', check=False, quiet=False)
     run('uv pip install git+https://github.com/argosopentech/argos-translate.git@08f017c324628434d671cf4d191ce681c620ff33 --system', check=False, quiet=False)
     
