@@ -165,11 +165,16 @@ def main():
     cloned = sum(1 for v in clone_results.values() if v)
     print(f"📊 Summary: {cloned}/{len(CUSTOM_NODES)} cloned")
     
-    # 7. Install ALL requirements with single UV command
-    print(f"📦 Installing all packages from unified requirements.txt...")
+    # 7. Install requirements with TWO-PHASE approach (faster!)
+    print("📦 Phase 1: Installing PyTorch stack (heavy binary packages)...")
     
-    # Single UV command with unified requirements
-    # requirements.txt contains: PyTorch 2.10.0 + ComfyUI base + ALL custom_nodes packages (129 total)
+    # Phase 1: Install PyTorch separately for better parallel download
+    pytorch_packages = "torch==2.10.0 torchvision==0.25.0 torchaudio==2.10.0 torchcodec==0.10.0"
+    run(f"uv pip install --system {pytorch_packages}", check=False, quiet=False)
+    
+    # Phase 2: Install all remaining packages
+    print("📦 Phase 2: Installing remaining packages from requirements.txt...")
+    # UV will skip already-installed PyTorch packages automatically
     run("uv pip install --system -r /content/sd_comfy/requirements.txt", check=False, quiet=False)
     
     # 8. Extra downloads (HF assets)
