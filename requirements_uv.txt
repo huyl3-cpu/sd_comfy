@@ -9,6 +9,20 @@ torchvision==0.25.0
 torchaudio==2.10.0
 torchcodec==0.10.0
 
+# ComfyUI Base Requirements
+comfyui-frontend-package==1.37.11
+comfyui-workflow-templates==0.8.27
+comfyui-embedded-docs==0.4.0
+comfy-kitchen>=0.2.7
+tokenizers>=0.13.3
+aiohttp>=3.11.8
+yarl>=1.18.0
+alembic
+SQLAlchemy
+requests
+pydantic~=2.0
+pydantic-settings~=2.0
+
 # Core dependencies
 packaging
 ninja
@@ -33,10 +47,10 @@ piexif
 
 # ML/AI Frameworks
 diffusers>=0.33.1
-transformers>=4.43.2
+transformers>=4.50.3
 peft>=0.17.0
 timm
-safetensors
+safetensors>=0.4.2
 sentencepiece>=0.2.1
 tiktoken>=0.12.0
 
