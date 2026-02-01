@@ -1,0 +1,136 @@
+# ============================================
+# SD Comfy - Unified Requirements
+# All packages from custom_nodes requirements.txt
+# ============================================
+
+# PyTorch (install first)
+torch==2.10.0
+torchvision==0.25.0
+torchaudio==2.10.0
+torchcodec==0.10.0
+
+# Core dependencies
+packaging
+ninja
+filelock
+importlib_metadata
+pyyaml
+dill
+
+# Acceleration & Optimization
+accelerate>=1.12.0
+bitsandbytes
+sageattention>=2.2.0
+
+# Media Processing
+ffmpeg-python
+imageio-ffmpeg
+opencv-python-headless
+opencv-python>=4.7.0.72
+opencv-contrib-python
+pillow>=10.3.0
+piexif
+
+# ML/AI Frameworks
+diffusers>=0.33.1
+transformers>=4.43.2
+peft>=0.17.0
+timm
+safetensors
+sentencepiece>=0.2.1
+tiktoken>=0.12.0
+
+# Vision & Image
+rembg
+insightface
+segment_anything
+clip_interrogator>=0.6.0
+albumentations
+pymatting
+transparent-background
+color-matcher
+colour-science
+mediapipe
+
+# ONNX Runtime
+onnxruntime-gpu
+onnx
+
+# Audio Processing
+soundfile>=0.13.1
+librosa>=0.11.0
+sounddevice
+pydub
+pyloudnorm
+openai-whisper
+
+# Scientific Computing
+numpy
+scipy
+scikit-learn
+scikit-image
+matplotlib
+pandas
+
+# Deep Learning Utilities
+einops>=0.8.1
+torchsde
+kornia
+spandrel
+rotary_embedding_torch>=0.5.3
+cupy-cuda12x>=13.3.0
+
+# Hugging Face
+huggingface_hub>=0.23.4
+
+# NLP & Translation
+deep-translator
+googletrans-py
+langdetect
+textblob
+spacy
+
+# ComfyUI Utilities
+blend_modes
+civitai-py
+pixeloe
+trimesh[easy]
+lark
+loguru
+mss
+
+# Configuration & Tools
+omegaconf>=2.3.0
+easydict
+addict
+fvcore
+yacs
+yapf
+
+# Misc
+protobuf
+psutil
+py-cpuinfo
+python-dateutil
+tqdm
+ftfy
+numba
+deepdiff
+fal_client
+ollama
+openai
+hf_xet
+gguf>=0.17.1
+
+# Platform-specific
+pynvml; platform_machine != 'aarch64'
+jetson-stats; platform_machine == 'aarch64'
+
+# YMC Suite
+yors_comfyui_node_setup
+yors_pano_ansi_color
+yors_pano_list_util
+yors_pano_zero_field
+
+# Git dependencies (install separately)
+# git+https://github.com/argosopentech/argos-translate.git@08f017c324628434d671cf4d191ce681c620ff33
