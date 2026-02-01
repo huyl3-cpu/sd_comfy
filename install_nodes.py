@@ -194,8 +194,6 @@ def main():
     print("🔧 Fixing specific dependencies...")
     run("uv pip uninstall onnxruntime onnxruntime-gpu --system", check=False, quiet=True)
     run("uv pip install onnxruntime-gpu --system", check=False, quiet=True)
-    run('uv pip uninstall protobuf --system', check=False, quiet=False)
-    run('uv pip install protobuf==3.20.3 --system', check=False, quiet=False)
     
     print("=" * 50)
     print("🎉 Installation complete!")
