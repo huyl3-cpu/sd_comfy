@@ -123,13 +123,13 @@ def main():
     print("📁 cd /content")
     
     # 2. Install system dependencies
-    print("\\n📦 Installing system dependencies...")
+    print("📦 Installing system dependencies...")
     run("apt-get update -qq", check=False, quiet=True)
     run("apt-get install -y -qq aria2", check=False, quiet=False)
     run("pip install uv", check=False, quiet=True)
     
     # 3. Clone ComfyUI
-    print("\\n📦 Cloning ComfyUI...")
+    print("📦 Cloning ComfyUI...")
     if os.path.isdir("/content/ComfyUI"):
         print("✅ ComfyUI already exists")
     else:
@@ -140,7 +140,7 @@ def main():
     setup_directories(MODEL_DIRS)
     
     # 5. Clone ComfyUI-Manager
-    print("\\n📦 Cloning ComfyUI-Manager...")
+    print("📦 Cloning ComfyUI-Manager...")
     custom_nodes_dir = "/content/ComfyUI/custom_nodes"
     os.makedirs(custom_nodes_dir, exist_ok=True)
     os.chdir(custom_nodes_dir)
@@ -152,7 +152,7 @@ def main():
         run(f"git clone --depth 1 -q {MANAGER_REPO} {mgr_dir}", check=True)
     
     # 6. Clone custom nodes (parallel)
-    print(f"\\n📦 Cloning {len(CUSTOM_NODES)} custom nodes (parallel, max {MAX_PARALLEL_CLONES})...")
+    print(f"📦 Cloning {len(CUSTOM_NODES)} custom nodes (parallel, max {MAX_PARALLEL_CLONES})...")
     
     clone_results = {}
     
@@ -163,10 +163,10 @@ def main():
             clone_results[name] = future.result()
     
     cloned = sum(1 for v in clone_results.values() if v)
-    print(f"\\n📊 Summary: {cloned}/{len(CUSTOM_NODES)} cloned")
+    print(f"📊 Summary: {cloned}/{len(CUSTOM_NODES)} cloned")
     
     # 7. Install ALL requirements with single UV command
-    print(f"\\n📦 Installing all packages from unified requirements_uv.txt...")
+    print(f"📦 Installing all packages from unified requirements_uv.txt...")
     
     # Single UV command with unified requirements
     # requirements_uv.txt contains: PyTorch 2.10.0 + ComfyUI base + ALL custom_nodes packages (129 total)
@@ -174,25 +174,25 @@ def main():
     
     # 8. Extra downloads (HF assets)
     if EXTRA_DOWNLOADS:
-        print("\\n📥 Extra downloads...")
+        print("📥 Extra downloads...")
         for cmd, desc in EXTRA_DOWNLOADS:
             print(f"  → {desc}")
             run(cmd, check=False, quiet=False)
     
     # 9. Special installs
-    print("\\n📦 Special installs...")
+    print("📦 Special installs...")
     run("uv pip install flash-attn --no-build-isolation --system", check=False, quiet=False)
     run('uv pip install https://github.com/explosion/spacy-models/releases/download/xx_sent_ud_sm-3.8.0/xx_sent_ud_sm-3.8.0-py3-none-any.whl --system', check=False, quiet=False)
     run('uv pip install git+https://github.com/argosopentech/argos-translate.git@08f017c324628434d671cf4d191ce681c620ff33 --system', check=False, quiet=False)
     
     # 10. Fix specific dependencies
-    print("\\n🔧 Fixing specific dependencies...")
+    print("🔧 Fixing specific dependencies...")
     run("uv pip uninstall onnxruntime onnxruntime-gpu --system", check=False, quiet=True)
     run("uv pip install onnxruntime-gpu --system", check=False, quiet=True)
     run('uv pip uninstall protobuf --system', check=False, quiet=False)
     run('uv pip install protobuf==3.20.3 --system', check=False, quiet=False)
     
-    print("\\n" + "=" * 50)
+    print("=" * 50)
     print("🎉 Installation complete!")
 
 

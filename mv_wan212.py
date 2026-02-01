@@ -2,7 +2,7 @@ import subprocess
 import os
 
 def run(cmd):
-    print(f"\nRUN: {cmd}")
+    # print(f"\nRUN: {cmd}")  # Hidden
     subprocess.run(cmd, shell=True, check=True)
 
 source_root = "/content/wan212"
@@ -26,7 +26,7 @@ files_to_move = [
     ("clip_vision_h.safetensors", "/content/ComfyUI/models/clip_vision"),
 ]
 
-print(f"🚀 Bắt đầu di chuyển {len(files_to_move)} file từ {source_root}...")
+# print(f"🚀 Bắt đầu di chuyển {len(files_to_move)} file từ {source_root}...")  # Hidden
 
 for filename, dest_dir in files_to_move:
     source_path = f"{source_root}/{filename}"
@@ -41,4 +41,4 @@ for filename, dest_dir in files_to_move:
     except subprocess.CalledProcessError:
         print(f"⚠️  Không tìm thấy file nguồn: {filename} - Bỏ qua.")
 
-print("\n✅ Hoàn tất di chuyển file!")
+# print("\n✅ Hoàn tất di chuyển file!")  # Hidden
