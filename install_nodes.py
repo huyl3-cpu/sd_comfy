@@ -135,20 +135,11 @@ def main():
     else:
         run(f"git clone --depth 1 -q {COMFYUI_REPO} /content/ComfyUI", check=True)
     
-    # 4. Mount Google Drive (if available)
-    try:
-        from google.colab import drive
-        if has_ipython_kernel():
-            drive.mount("/content/drive")
-            print("✅ Google Drive mounted")
-    except Exception as e:
-        print(f"⚠ Skip drive.mount: {e}")
-    
-    # 5. Setup directories
+    # 4. Setup directories
     os.chdir("/content/ComfyUI")
     setup_directories(MODEL_DIRS)
     
-    # 6. Clone ComfyUI-Manager
+    # 5. Clone ComfyUI-Manager
     print("\\n📦 Cloning ComfyUI-Manager...")
     custom_nodes_dir = "/content/ComfyUI/custom_nodes"
     os.makedirs(custom_nodes_dir, exist_ok=True)
@@ -160,7 +151,7 @@ def main():
     else:
         run(f"git clone --depth 1 -q {MANAGER_REPO} {mgr_dir}", check=True)
     
-    # 7. Clone custom nodes (parallel)
+    # 6. Clone custom nodes (parallel)
     print(f"\\n📦 Cloning {len(CUSTOM_NODES)} custom nodes (parallel, max {MAX_PARALLEL_CLONES})...")
     
     clone_results = {}
@@ -174,7 +165,7 @@ def main():
     cloned = sum(1 for v in clone_results.values() if v)
     print(f"\\n📊 Summary: {cloned}/{len(CUSTOM_NODES)} cloned")
     
-    # 8. Install ALL requirements with single UV command
+    # 7. Install ALL requirements with single UV command
     print(f"\\n📦 Installing all packages from requirements_uv.txt + ComfyUI base requirements...")
     
     # Single UV command with all requirements
@@ -184,22 +175,22 @@ def main():
         "-r /content/sd_comfy/requirements_uv.txt "
         "-r /content/ComfyUI/requirements.txt"
     )
-    run(final_cmd, check=False, quiet=False, print_cmd=False)
+    run(final_cmd, check=False, quiet=False)
     
-    # 9. Extra downloads (HF assets)
+    # 8. Extra downloads (HF assets)
     if EXTRA_DOWNLOADS:
         print("\\n📥 Extra downloads...")
         for cmd, desc in EXTRA_DOWNLOADS:
             print(f"  → {desc}")
             run(cmd, check=False, quiet=False)
     
-    # 10. Special installs
+    # 9. Special installs
     print("\\n📦 Special installs...")
     run("uv pip install flash-attn --no-build-isolation --system", check=False, quiet=False)
     run('uv pip install https://github.com/explosion/spacy-models/releases/download/xx_sent_ud_sm-3.8.0/xx_sent_ud_sm-3.8.0-py3-none-any.whl --system', check=False, quiet=False)
     run('uv pip install git+https://github.com/argosopentech/argos-translate.git@08f017c324628434d671cf4d191ce681c620ff33 --system', check=False, quiet=False)
     
-    # 11. Fix specific dependencies
+    # 10. Fix specific dependencies
     print("\\n🔧 Fixing specific dependencies...")
     run("uv pip uninstall onnxruntime onnxruntime-gpu --system", check=False, quiet=True)
     run("uv pip install onnxruntime-gpu --system", check=False, quiet=True)
