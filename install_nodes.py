@@ -166,11 +166,11 @@ def main():
     print(f"📊 Summary: {cloned}/{len(CUSTOM_NODES)} cloned")
     
     # 7. Install ALL requirements with single UV command
-    print(f"📦 Installing all packages from unified requirements_uv.txt...")
+    print(f"📦 Installing all packages from unified requirements.txt...")
     
     # Single UV command with unified requirements
-    # requirements_uv.txt contains: PyTorch 2.10.0 + ComfyUI base + ALL custom_nodes packages (129 total)
-    run("uv pip install --system -r /content/sd_comfy/requirements_uv.txt", check=False, quiet=False)
+    # requirements.txt contains: PyTorch 2.10.0 + ComfyUI base + ALL custom_nodes packages (129 total)
+    run("uv pip install --system -r /content/sd_comfy/requirements.txt", check=False, quiet=False)
     
     # 8. Extra downloads (HF assets)
     if EXTRA_DOWNLOADS:
