@@ -46,11 +46,6 @@ CUSTOM_NODES: List[Tuple[str, str, bool]] = [
     ("https://github.com/ltdrdata/ComfyUI-Impact-Pack.git", "ComfyUI-Impact-Pack", True),
 ]
 
-# Additional downloads
-EXTRA_DOWNLOADS = [
-    ("hf download banhkeomath2/sound --local-dir /content/ComfyUI/custom_nodes/ComfyUI-Custom-Scripts/web/js/assets --quiet", "sound assets"),
-]
-
 # Model directories to create
 MODEL_DIRS = [
     "/content/ComfyUI/models/diffusion_models",
@@ -188,13 +183,6 @@ def main():
     print("🔧 Fixing specific dependencies...")
     run("uv pip uninstall onnxruntime onnxruntime-gpu --system", check=False, quiet=True)
     run("uv pip install onnxruntime-gpu --system", check=False, quiet=True)
-    
-    # 10. Extra downloads (HF assets)
-    if EXTRA_DOWNLOADS:
-        print("📥 Extra downloads...")
-        for cmd, desc in EXTRA_DOWNLOADS:
-            print(f"  → {desc}")
-            run(cmd, check=False, quiet=False)
     
     print("=" * 50)
     print("🎉 Installation complete!")
