@@ -43,6 +43,7 @@ CUSTOM_NODES: List[Tuple[str, str, bool]] = [
     ("https://github.com/huyl3-cpu/segment_wan21.git", "segment_wan21", True),
     ("https://github.com/kijai/ComfyUI-MelBandRoFormer.git", "ComfyUI-MelBandRoFormer", True),
     ("https://github.com/huyl3-cpu/QwenTTS.git", "QwenTTS", True),
+    ("https://github.com/ltdrdata/ComfyUI-Impact-Pack.git", "ComfyUI-Impact-Pack", True),
 ]
 
 # Additional downloads
@@ -165,38 +166,65 @@ def main():
     cloned = sum(1 for v in clone_results.values() if v)
     print(f"📊 Summary: {cloned}/{len(CUSTOM_NODES)} cloned")
     
-    # 7. Install requirements with TWO-PHASE approach (faster!)
-    print("📦 Phase 1: Installing PyTorch stack (heavy binary packages)...")
+    # 7. Install Python packages using UV
+    print("📦 Installing Python packages...")
     
-    # Phase 1: Install PyTorch separately for better parallel download
+    # Phase 1: Install PyTorch stack first (heavy binaries)
+    print("  → Phase 1: PyTorch stack...")
     pytorch_packages = "torch==2.10.0 torchvision==0.25.0 torchaudio==2.10.0 torchcodec==0.10.0"
     run(f"uv pip install --system {pytorch_packages}", check=False, quiet=False)
     
-    # Phase 2: Install all remaining packages
-    print("📦 Phase 2: Installing remaining packages from requirements.txt...")
-    # UV will skip already-installed PyTorch packages automatically
-    run("uv pip install --system -r /content/sd_comfy/requirements.txt", check=False, quiet=False)
+    # Phase 2: Auto-install requirements from all custom nodes
+    print("  → Phase 2: Custom node requirements...")
+    from pathlib import Path
     
-    # 8. Extra downloads (HF assets)
+    custom_nodes_path = Path("/content/ComfyUI/custom_nodes")
+    req_files = list(custom_nodes_path.rglob("requirements.txt"))
+    
+    print(f"  → Found {len(req_files)} requirements.txt files")
+    
+    success_count = 0
+    fail_count = 0
+    
+    for req_file in req_files:
+        node_name = req_file.parent.name
+        print(f"    • {node_name}...", end=" ")
+        
+        result = run(
+            f"uv pip install --system -r {req_file}",
+            check=False,
+            quiet=True
+        )
+        
+        if result and result.returncode == 0:
+            print("✓")
+            success_count += 1
+        else:
+            print("✗")
+            fail_count += 1
+    
+    print(f"  → Summary: {success_count} succeeded, {fail_count} failed")
+    
+    # 8. Special installs (git packages & wheels)
+    print("📦 Special installs...")
+    run('uv pip install https://github.com/explosion/spacy-models/releases/download/xx_sent_ud_sm-3.8.0/xx_sent_ud_sm-3.8.0-py3-none-any.whl --system', check=False, quiet=False)
+    run('uv pip install git+https://github.com/argosopentech/argos-translate.git@08f017c324628434d671cf4d191ce681c620ff33 --system', check=False, quiet=False)
+    
+    # 9. Fix specific dependencies
+    print("🔧 Fixing specific dependencies...")
+    run("uv pip uninstall onnxruntime onnxruntime-gpu --system", check=False, quiet=True)
+    run("uv pip install onnxruntime-gpu --system", check=False, quiet=True)
+    
+    # 10. Extra downloads (HF assets)
     if EXTRA_DOWNLOADS:
         print("📥 Extra downloads...")
         for cmd, desc in EXTRA_DOWNLOADS:
             print(f"  → {desc}")
             run(cmd, check=False, quiet=False)
     
-    # 9. Special installs
-    print("📦 Special installs...")
-    # run("uv pip install flash-attn --no-build-isolation --system", check=False, quiet=False)  # Too slow (5-10 min), removed
-    run('uv pip install https://github.com/explosion/spacy-models/releases/download/xx_sent_ud_sm-3.8.0/xx_sent_ud_sm-3.8.0-py3-none-any.whl --system', check=False, quiet=False)
-    run('uv pip install git+https://github.com/argosopentech/argos-translate.git@08f017c324628434d671cf4d191ce681c620ff33 --system', check=False, quiet=False)
-    
-    # 10. Fix specific dependencies
-    print("🔧 Fixing specific dependencies...")
-    run("uv pip uninstall onnxruntime onnxruntime-gpu --system", check=False, quiet=True)
-    run("uv pip install onnxruntime-gpu --system", check=False, quiet=True)
-    
     print("=" * 50)
     print("🎉 Installation complete!")
+
 
 
 if __name__ == "__main__":
