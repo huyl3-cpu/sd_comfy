@@ -1,3 +1,4 @@
 ﻿# Backup files
 *.bak
 requirements_from_nodes.txt
+__pycache__/

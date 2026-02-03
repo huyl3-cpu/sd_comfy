@@ -183,6 +183,12 @@ def main():
     print("🔧 Fixing specific dependencies...")
     run("uv pip uninstall onnxruntime onnxruntime-gpu --system", check=False, quiet=True)
     run("uv pip install onnxruntime-gpu --system", check=False, quiet=True)
+
+    # Specific fixes for QwenVL
+    #print("🔧 Aggressively upgrading transformers for QwenVL...")
+    #run("pip uninstall -y transformers", check=False, quiet=False)
+    #run("pip install transformers>=4.48.0", check=False, quiet=False)
+    run("uv pip install llama-cpp-python --system", check=False, quiet=False)
     
     print("=" * 50)
     print("🎉 Installation complete!")
