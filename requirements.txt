@@ -48,7 +48,7 @@ piexif
 
 # ML/AI Frameworks
 diffusers>=0.33.1
-transformers
+transformers=4.48.0
 peft>=0.17.0
 timm
 safetensors>=0.4.2
