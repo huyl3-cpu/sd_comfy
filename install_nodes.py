@@ -121,7 +121,7 @@ def main():
     # 2. Install system dependencies
     print("📦 Installing system dependencies...")
     run("apt-get update -qq", check=False, quiet=True)
-    run("apt-get install -y -qq aria2", check=False, quiet=False)
+    run("apt-get install -y -qq aria2", check=False, quiet=True)
     run("pip install uv", check=False, quiet=True)
     
     # 3. Clone ComfyUI
