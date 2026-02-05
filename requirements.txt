@@ -10,11 +10,11 @@ torchaudio==2.10.0
 torchcodec==0.10.0
 
 # ComfyUI Base Requirements
-comfyui-frontend-package==1.37.11
-comfyui-workflow-templates==0.8.27
+comfyui-frontend-package==1.38.13
+comfyui-workflow-templates==0.8.31
 comfyui-embedded-docs==0.4.0
 comfy-kitchen>=0.2.7
-comfy-aimdo>=0.1.6
+comfy-aimdo>=0.1.7
 tokenizers>=0.13.3
 aiohttp>=3.11.8
 yarl>=1.18.0
@@ -80,7 +80,7 @@ pyloudnorm
 openai-whisper
 
 # Scientific Computing
-numpy
+numpy>=1.25.0
 scipy
 scikit-learn
 scikit-image
@@ -90,7 +90,7 @@ pandas
 # Deep Learning Utilities
 einops>=0.8.1
 torchsde
-kornia
+kornia>=0.7.1
 spandrel
 rotary_embedding_torch>=0.5.3
 cupy-cuda12x>=13.3.0
