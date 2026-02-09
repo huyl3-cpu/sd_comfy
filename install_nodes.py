@@ -44,6 +44,10 @@ CUSTOM_NODES: List[Tuple[str, str, bool]] = [
     ("https://github.com/kijai/ComfyUI-MelBandRoFormer.git", "ComfyUI-MelBandRoFormer", True),
     ("https://github.com/huyl3-cpu/QwenTTS.git", "QwenTTS", True),
     ("https://github.com/ltdrdata/ComfyUI-Impact-Pack.git", "ComfyUI-Impact-Pack", True),
+    ("https://github.com/christian-byrne/audio-separation-nodes-comfyui.git", "audio-separation-nodes-comfyui", True),
+    ("https://github.com/M1kep/Comfy_KepListStuff.git", "Comfy_KepListStuff", True),
+    ("https://github.com/Suzie1/ComfyUI_Comfyroll_CustomNodes.git", "ComfyUI_Comfyroll_CustomNodes", True),
+    ("https://github.com/hassan-sd/comfyui-image-prompt-loader.git", "comfyui-image-prompt-loader", True),
 ]
 
 # Model directories to create

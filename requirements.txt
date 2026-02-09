@@ -39,6 +39,7 @@ bitsandbytes
 # Media Processing
 ffmpeg-python
 imageio-ffmpeg
+moviepy
 av>=14.2.0
 opencv-python-headless
 opencv-python>=4.7.0.72
