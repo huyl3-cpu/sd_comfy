@@ -15,6 +15,7 @@ files_to_move = [
     ("wan_2.1_vae.safetensors", "/content/ComfyUI/models/vae"),
     ("lightx2v_T2V_14B_cfg_step_distill_v2_lora_rank64_bf16.safetensors", "/content/ComfyUI/models/loras"),
     ("clip_vision_h.safetensors", "/content/ComfyUI/models/clip_vision"),
+    ("lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors", "/content/ComfyUI/models/loras"),
 ]
 
 # print(f"🚀 Bắt đầu di chuyển {len(files_to_move)} file từ {source_root}...")  # Hidden
