@@ -114,6 +114,11 @@ trimesh[easy]
 lark
 loguru
 mss
+qrcode[pil]
+requirements-parser
+rich
+rich_argparse
+cachetools
 
 # Configuration & Tools
 omegaconf>=2.3.0
