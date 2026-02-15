@@ -24,6 +24,10 @@ files_to_move = [
     ("vitpose_h_wholebody_data.bin", "/content/ComfyUI/models/detection"),
     ("vitpose_h_wholebody_model.onnx", "/content/ComfyUI/models/detection"),
     ("clip_vision_h.safetensors", "/content/ComfyUI/models/clip_vision"),
+    ("lightx2v_T2V_14B_cfg_step_distill_v2_lora_rank128_bf16.safetensors", "/content/ComfyUI/models/loras"),
+    ("Wan2.2-Fun-A14B-InP-LOW-HPS2.1_resized_dynamic_avg_rank_15_bf16.safetensors", "/content/ComfyUI/models/loras"),
+    ("Wan2.2-Fun-A14B-InP-low-noise-HPS2.1.safetensors", "/content/ComfyUI/models/loras"),
+    ("lightx2v_I2V_14B_480p_cfg_step_distill_rank128_bf16.safetensors", "/content/ComfyUI/models/loras"),
 ]
 
 # print(f"🚀 Bắt đầu di chuyển {len(files_to_move)} file từ {source_root}...")  # Hidden
