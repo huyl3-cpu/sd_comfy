@@ -10,11 +10,11 @@ torchaudio==2.10.0
 torchcodec==0.10.0
 
 # ComfyUI Base Requirements
-comfyui-frontend-package==1.38.13
-comfyui-workflow-templates==0.8.31
-comfyui-embedded-docs==0.4.0
+comfyui-frontend-package==1.38.14
+comfyui-workflow-templates==0.8.38
+comfyui-embedded-docs==0.4.1
 comfy-kitchen>=0.2.7
-comfy-aimdo>=0.1.7
+comfy-aimdo>=0.1.8
 tokenizers>=0.13.3
 aiohttp>=3.11.8
 yarl>=1.18.0
@@ -35,6 +35,7 @@ dill
 # Acceleration & Optimization
 accelerate>=1.12.0
 bitsandbytes
+sageattention
 
 # Media Processing
 ffmpeg-python
