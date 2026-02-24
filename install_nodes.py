@@ -15,7 +15,7 @@ MANAGER_REPO = "https://github.com/Comfy-Org/ComfyUI-Manager.git"
 
 # Format: (repo_url, folder_name, has_requirements)
 CUSTOM_NODES: List[Tuple[str, str, bool]] = [
-    ("https://github.com/huyl3-cpu/Easy_Use.git", "Easy-Use", True),
+    ("https://github.com/yolain/ComfyUI-Easy-Use.git", "Easy-Use", True),
     ("https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git", "ComfyUI-Custom-Scripts", False),
     ("https://github.com/crystian/ComfyUI-Crystools.git", "ComfyUI-Crystools", True),
     ("https://github.com/cubiq/ComfyUI_essentials.git", "ComfyUI_essentials", True),
