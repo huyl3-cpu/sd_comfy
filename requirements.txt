@@ -10,11 +10,11 @@ torchaudio==2.10.0
 torchcodec==0.10.0
 
 # ComfyUI Base Requirements
-comfyui-frontend-package==1.39.14
-comfyui-workflow-templates==0.8.43
-comfyui-embedded-docs==0.4.1
+comfyui-frontend-package==1.39.19
+comfyui-workflow-templates==0.9.4
+comfyui-embedded-docs==0.4.3
 comfy-kitchen>=0.2.7
-comfy-aimdo>=0.2.0
+comfy-aimdo>=0.2.2
 tokenizers>=0.13.3
 aiohttp>=3.11.8
 yarl>=1.18.0
@@ -147,6 +147,8 @@ gguf>=0.17.1
 # Platform-specific
 pynvml; platform_machine != 'aarch64'
 jetson-stats; platform_machine == 'aarch64'
+PyOpenGL
+glfw
 
 # YMC Suite
 yors_comfyui_node_setup
