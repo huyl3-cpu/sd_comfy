@@ -193,7 +193,7 @@ def main():
     #print("🔧 Aggressively upgrading transformers for QwenVL...")
     #run("pip uninstall -y transformers", check=False, quiet=False)
     #run("pip install transformers>=4.48.0", check=False, quiet=False)
-    run("uv pip install llama-cpp-python --system", check=False, quiet=False)
+    #run("uv pip install llama-cpp-python --system", check=False, quiet=False)
     
     print("=" * 50)
     print("🎉 Installation complete!")
