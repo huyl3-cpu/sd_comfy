@@ -186,8 +186,8 @@ def main():
     
     # 9. Fix specific dependencies
     print("🔧 Fixing specific dependencies...")
-    run("uv pip uninstall onnxruntime onnxruntime-gpu --system", check=False, quiet=True)
-    run("uv pip install onnxruntime-gpu --system", check=False, quiet=True)
+    run("pip uninstall onnxruntime onnxruntime-gpu --system", check=False, quiet=True)
+    run("pip install onnxruntime-gpu --system", check=False, quiet=True)
 
     # Specific fixes for QwenVL
     #print("🔧 Aggressively upgrading transformers for QwenVL...")
