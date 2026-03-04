@@ -11,10 +11,10 @@ torchcodec==0.10.0
 
 # ComfyUI Base Requirements
 comfyui-frontend-package==1.39.19
-comfyui-workflow-templates==0.9.4
+comfyui-workflow-templates==0.9.5
 comfyui-embedded-docs==0.4.3
 comfy-kitchen>=0.2.7
-comfy-aimdo>=0.2.2
+comfy-aimdo>=0.2.4
 tokenizers>=0.13.3
 aiohttp>=3.11.8
 yarl>=1.18.0
@@ -50,7 +50,7 @@ piexif
 
 # ML/AI Frameworks
 diffusers>=0.33.1
-transformers==4.57.6
+transformers>=4.50.3
 peft>=0.17.0
 timm
 safetensors>=0.4.2
