@@ -9,7 +9,7 @@ source_root = "/content/mc"
 
 files_to_move = [
     ("Wan2_1-InfiniteTalk-Single_fp8_e4m3fn_scaled_KJ.safetensors", "/content/ComfyUI/models/diffusion_models"),
-    ("Wan2_1-I2V-14B-720P_fp8_e4m3fn.safetensors", "/content/ComfyUI/models/diffusion_models"),
+    ("Wan2_1-I2V-14B_bf16.safetensors", "/content/ComfyUI/models/diffusion_models"),
     ("MelBandRoformer_fp32.safetensors", "/content/ComfyUI/models/diffusion_models"),
     ("umt5-xxl-enc-fp8_e4m3fn.safetensors", "/content/ComfyUI/models/text_encoders"),
     ("wan_2.1_vae.safetensors", "/content/ComfyUI/models/vae"),
@@ -17,6 +17,7 @@ files_to_move = [
     ("clip_vision_h.safetensors", "/content/ComfyUI/models/clip_vision"),
     ("lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors", "/content/ComfyUI/models/loras"),
     ("lightx2v_I2V_14B_480p_cfg_step_distill_rank128_bf16.safetensors", "/content/ComfyUI/models/loras"),
+    ("Wan21_I2V_14B_lightx2v_cfg_step_distill_lora_rank64.safetensors", "/content/ComfyUI/models/loras"),
 ]
 
 # print(f"🚀 Bắt đầu di chuyển {len(files_to_move)} file từ {source_root}...")  # Hidden

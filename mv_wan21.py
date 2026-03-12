@@ -9,7 +9,7 @@ source_root = "/content/wan21"
 
 files_to_move = [
     ("ditto_global_style_comfy.safetensors", "/content/ComfyUI/models/diffusion_models"),
-    ("Wan2_1-T2V-14B_fp8_e4m3fn.safetensors", "/content/ComfyUI/models/diffusion_models"),
+    ("Wan2_1-T2V-14B_bf16.safetensors", "/content/ComfyUI/models/diffusion_models"),
     ("umt5-xxl-enc-fp8_e4m3fn.safetensors", "/content/ComfyUI/models/text_encoders"),
     ("wan_2.1_vae.safetensors", "/content/ComfyUI/models/vae"),
     ("Wan21_CausVid_14B_T2V_lora_rank32_v2.safetensors", "/content/ComfyUI/models/loras"),

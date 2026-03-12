@@ -23,7 +23,7 @@ files_to_move = [
     ("lightx2v_I2V_14B_480p_cfg_step_distill_rank128_bf16.safetensors", "/content/ComfyUI/models/loras"),
     ("Wan21_I2V_14B_lightx2v_cfg_step_distill_lora_rank64.safetensors", "/content/ComfyUI/models/loras"),
     ("wan_2.1_vae.safetensors", "/content/ComfyUI/models/vae"),
-    ("Wan2_2-Animate-14B_fp8_scaled_e4m3fn_KJ_v2.safetensors", "/content/ComfyUI/models/diffusion_models"),
+    ("Wan2_2-Animate-14B_bf16.safetensors", "/content/ComfyUI/models/diffusion_models"),
     ("umt5-xxl-enc-fp8_e4m3fn.safetensors", "/content/ComfyUI/models/text_encoders"),
 ]
 
