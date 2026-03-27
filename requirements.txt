@@ -11,7 +11,7 @@ torchcodec==0.10.0
 
 # ComfyUI Base Requirements
 comfyui-frontend-package==1.42.8
-comfyui-workflow-templates==0.9.36
+comfyui-workflow-templates==0.9.38
 comfyui-embedded-docs==0.4.3
 comfy-kitchen>=0.2.8
 comfy-aimdo>=0.2.12
