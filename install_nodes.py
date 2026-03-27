@@ -27,7 +27,6 @@ CUSTOM_NODES: List[Tuple[str, str, bool]] = [
     ("https://github.com/huyl3-cpu/Qwen-VL.git", "QwenVL", True),
     ("https://github.com/huyl3-cpu/GIMM-VFI.git", "GIMM-VFI", True),
     ("https://github.com/jamesWalker55/comfyui-various.git", "comfyui-various", False),
-    ("https://github.com/YMC-GitHub/ymc-node-suite-comfyui.git", "ymc-node-suite-comfyui", True),
     ("https://github.com/daxcay/ComfyUI-YouTubeVideoPlayer.git", "ComfyUI-YouTubeVideoPlayer", False),
     ("https://github.com/TinyBeeman/ComfyUI-TinyBee.git", "ComfyUI-TinyBee", True),
     ("https://github.com/huyl3-cpu/VideoWrapper.git", "VideoWrapper", True),
