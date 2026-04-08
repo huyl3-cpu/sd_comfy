@@ -137,22 +137,31 @@ def _wait_comfyui(port: int, poll: int = 2) -> None:
 
 
 def _extract_pinggy_url(text: str):
-    """Return the first Pinggy HTTPS URL found in text, or None."""
-    # Covers all known Pinggy URL formats:
-    #   Pro:  https://xxx.a.pinggy.link
-    #   Free: https://xxx-IP.run.pinggy-free.link
-    #   Old free: https://xxx.free.pinggy.link
+    """Return the first Pinggy HTTPS URL found in text, or None.
+
+    Pinggy CLI/SSH outputs http:// URLs even when HTTPS Only is configured.
+    We match both http:// and https://, then always return https:// version.
+    """
+    # Match http or https for all known Pinggy URL formats:
+    #   Pro:  http(s)://xxx.a.pinggy.link
+    #   Free: http(s)://xxx-IP.run.pinggy-free.link
+    #   Old:  http(s)://xxx.free.pinggy.link / xxx.pinggy.link
     patterns = [
-        r'https://[a-zA-Z0-9\-]+\.a\.pinggy\.link',
-        r'https://[a-zA-Z0-9\-\.]+\.pinggy-free\.link',
-        r'https://[a-zA-Z0-9\-]+\.free\.pinggy\.link',
-        r'https://[a-zA-Z0-9\-]+\.pinggy\.link',
+        r'https?://[a-zA-Z0-9\-]+\.a\.pinggy\.link',
+        r'https?://[a-zA-Z0-9\-\.]+\.pinggy-free\.link',
+        r'https?://[a-zA-Z0-9\-]+\.free\.pinggy\.link',
+        r'https?://[a-zA-Z0-9\-]+\.pinggy\.link',
     ]
     for p in patterns:
         m = re.search(p, text)
         if m:
-            return m.group(0)
+            url = m.group(0)
+            # Always return https:// (HTTPS Only configured in Pinggy Dashboard)
+            if url.startswith('http://'):
+                url = 'https://' + url[7:]
+            return url
     return None
+
 
 
 def _print_url_banner(url: str) -> None:
