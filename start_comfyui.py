@@ -267,11 +267,12 @@ def _pinggy_worker(token: str) -> None:
     # This unblocks readline() which would otherwise block indefinitely.
     def _stop_watcher():
         _stop_event.wait()          # blocks until stop_event.set() is called
-        if _tunnel_proc:
-            try:
+        try:
+            global _tunnel_proc     # must be explicit in nested function
+            if _tunnel_proc:
                 _tunnel_proc.terminate()
-            except Exception:
-                pass
+        except (NameError, Exception):
+            pass
     threading.Thread(target=_stop_watcher, daemon=True).start()
 
     while not _stop_event.is_set():
