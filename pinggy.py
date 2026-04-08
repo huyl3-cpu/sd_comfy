@@ -118,14 +118,29 @@ def is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
 
 
 def start_tunnel(token: str) -> Optional[subprocess.Popen]:
-    """Start Pinggy SSH reverse tunnel to expose ComfyUI."""
+    """Start Pinggy SSH reverse tunnel to expose ComfyUI.
+    
+    Token format:
+      Free : NyiGDbViHdm@free.pinggy.io
+      Pro  : fn5MdCAn86q@pro.pinggy.io
+    
+    '+t' appended to host disables Pinggy Password Protection (fixes 403).
+    """
     global tunnel_proc
     
-    # Correct Pinggy SSH command:
-    # -R0:localhost:8188  → reverse tunnel: Pinggy server forwards to our local 8188
-    # No -L flag needed (that's for local port forwarding, not reverse tunnel)
+    # Detect host from token and append '+t' to disable password protection
+    # token = "MYTOKEN@free.pinggy.io"  or  "MYTOKEN@pro.pinggy.io"
+    if '@' in token:
+        user_part, host_part = token.rsplit('@', 1)
+        # '+t' = disable basic auth (password protection) on Pinggy
+        host_with_noauth = host_part + '+t'
+        ssh_target = f"{user_part}@{host_with_noauth}"
+    else:
+        ssh_target = token  # fallback: use as-is
+    
     cmd = [
         'ssh',
+        '-T',                         # disable pseudo-terminal (no TTY needed)
         '-p', '443',
         f'-R0:localhost:{COMFYUI_PORT}',
         '-o', 'StrictHostKeyChecking=no',
@@ -133,12 +148,15 @@ def start_tunnel(token: str) -> Optional[subprocess.Popen]:
         '-o', 'ServerAliveCountMax=3',
         '-o', 'ConnectTimeout=30',
         '-o', 'ExitOnForwardFailure=yes',
-        token
+        ssh_target
     ]
+    
+    print(f"🔗 SSH → {ssh_target.split('@')[1]} (password protection: OFF)")
     
     try:
         tunnel_proc = subprocess.Popen(
             cmd,
+            stdin=subprocess.DEVNULL,  # no interactive input
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
