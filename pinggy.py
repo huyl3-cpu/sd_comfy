@@ -22,6 +22,9 @@ COMFYUI_PORT = 8188
 MAX_RETRIES = 5
 RETRY_DELAY = 10
 
+# ============ Public export for notebook ============
+public_url = None  # Will be set when tunnel is ready
+
 # ============ Global State ============
 tunnel_proc: Optional[subprocess.Popen] = None
 tunnel_url: Optional[str] = None
@@ -44,32 +47,23 @@ def safe_print(message: str, token: str = "") -> None:
 
 
 def load_config(config_path: str) -> tuple:
-    """Load and validate configuration file."""
+    """Load and validate configuration file. Returns (token,) only."""
     if not os.path.exists(config_path):
         raise SystemExit(f"❌ Config not found: {config_path}")
     
     with open(config_path, "r") as f:
         lines = [x.strip() for x in f.readlines() if x.strip() and not x.startswith("#")]
     
-    if len(lines) < 2:
-        raise SystemExit("❌ user.conf invalid — need 2 lines: TOKEN + LOCALPORT")
+    if len(lines) < 1:
+        raise SystemExit("❌ user.conf invalid — need at least 1 line: TOKEN")
     
     token = lines[0]
-    local_port = lines[1]
     
     # Validate token format (basic check)
     if "@" not in token and "pinggy" not in token.lower():
-        print("⚠ Warning: Token format may be incorrect")
+        print("⚠ Warning: Token format may be incorrect (expected: TOKEN@free.pinggy.io)")
     
-    # Validate port
-    try:
-        port_num = int(local_port.split(":")[0]) if ":" in local_port else 0
-        if port_num < 0 or port_num > 65535:
-            raise ValueError
-    except ValueError:
-        pass  # Some configurations use special format
-    
-    return token, local_port
+    return token
 
 
 def extract_tunnel_url(text: str) -> Optional[str]:
@@ -123,19 +117,22 @@ def is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
         return False
 
 
-def start_tunnel(token: str, local_port: str) -> Optional[subprocess.Popen]:
-    """Start Pinggy SSH tunnel."""
+def start_tunnel(token: str) -> Optional[subprocess.Popen]:
+    """Start Pinggy SSH reverse tunnel to expose ComfyUI."""
     global tunnel_proc
     
+    # Correct Pinggy SSH command:
+    # -R0:localhost:8188  → reverse tunnel: Pinggy server forwards to our local 8188
+    # No -L flag needed (that's for local port forwarding, not reverse tunnel)
     cmd = [
         'ssh',
         '-p', '443',
         f'-R0:localhost:{COMFYUI_PORT}',
-        f'-L{local_port}',
         '-o', 'StrictHostKeyChecking=no',
         '-o', 'ServerAliveInterval=30',
         '-o', 'ServerAliveCountMax=3',
         '-o', 'ConnectTimeout=30',
+        '-o', 'ExitOnForwardFailure=yes',
         token
     ]
     
@@ -154,48 +151,51 @@ def start_tunnel(token: str, local_port: str) -> Optional[subprocess.Popen]:
 
 
 def monitor_tunnel(token: str) -> None:
-    """Monitor tunnel output and extract URL."""
-    global tunnel_url, tunnel_ready
+    """Monitor tunnel output and extract URL. Sets module-level public_url."""
+    global tunnel_url, tunnel_ready, public_url
     
     if tunnel_proc is None:
         return
     
+    import sys
+    this_module = sys.modules[__name__]
+    
     try:
         output_buffer = ""
         line_count = 0
-        max_lines = 50
+        max_lines = 100  # increase to catch URL which may appear later
         
         while tunnel_proc.poll() is None and line_count < max_lines:
             line = tunnel_proc.stdout.readline()
             if not line:
+                time.sleep(0.1)
                 continue
             
             line_str = line.strip()
-            # 1. Filter out stats (RB: ..., SB: ...)
+            # Filter out bandwidth stats (RB: ..., SB: ...)
             if "RB:" in line_str and "SB:" in line_str:
                 continue
             
             # Try to extract URL
             url = extract_tunnel_url(line_str)
             
-            if url:
-                # Check if it is https
-                if url.startswith("https://"):
-                    if not tunnel_url:
-                        tunnel_url = url
-                        tunnel_ready = True
-                        print("\n" + "█" * 60)
-                        print("█" + " " * 58 + "█")
-                        print(f"█   \033[1;32mCOMFYUI PUBLIC URL\033[0m" + " " * (40) + "█")
-                        print("█" + " " * 58 + "█")
-                        print(f"█   \033[1;93m{tunnel_url}\033[0m")
-                        print("█" + " " * 58 + "█")
-                        print("█" + " " * 58 + "█")
-                        print("█   \033[1;30m(Click the link above to open ComfyUI)\033[0m" + " " * 20 + "█")
-                        print("█" + " " * 58 + "█")
-                        print("█" * 60 + "\n")
-                        break
-                # If http, ignore it (don't print raw line either)
+            if url and url.startswith("https://"):
+                if not tunnel_url:
+                    tunnel_url = url
+                    public_url = url  # export for notebook cell
+                    # Also set on module so notebook %run can access it
+                    setattr(this_module, 'public_url', url)
+                    tunnel_ready = True
+                    print("\n" + "█" * 60)
+                    print("█" + " " * 58 + "█")
+                    print(f"█   \033[1;32mCOMFYUI PUBLIC URL\033[0m" + " " * 40 + "█")
+                    print("█" + " " * 58 + "█")
+                    print(f"█   \033[1;93m{tunnel_url}\033[0m")
+                    print("█" + " " * 58 + "█")
+                    print("█   \033[1;30m(Click the link above to open ComfyUI)\033[0m" + " " * 20 + "█")
+                    print("█" + " " * 58 + "█")
+                    print("█" * 60 + "\n")
+                    break
                 continue
 
             output_buffer += line_str + "\n"
@@ -205,20 +205,18 @@ def monitor_tunnel(token: str) -> None:
             if line_str:
                 safe_print(f"🌐 Tunnel: {line_str}", token)
             
-            # Check for success indicators
-            if any(ind in line_str.lower() for ind in ["tunnel established", "forwarding", "connected"]):
-                print("✅ Tunnel connection established")
-            
             # Check for errors
-            if any(err in line_str.lower() for err in ["error", "failed", "refused", "timeout"]):
+            if any(err in line_str.lower() for err in ["permission denied", "connection refused", "network error"]):
                 safe_print(f"❌ Tunnel error: {line_str}", token)
                 break
         
         # Fallback: search entire buffer
         if not tunnel_url and output_buffer:
             url = extract_tunnel_url(output_buffer)
-            if url:
+            if url and url.startswith("https://"):
                 tunnel_url = url
+                public_url = url
+                setattr(this_module, 'public_url', url)
                 tunnel_ready = True
                 print(f"\n\033[1;32m🎉 COMFYUI PUBLIC LINK: {tunnel_url}\033[0m")
     
@@ -226,55 +224,61 @@ def monitor_tunnel(token: str) -> None:
         print(f"❌ Monitor error: {e}")
 
 
-def tunnel_worker(token: str, local_port: str) -> None:
+def tunnel_worker(token: str) -> None:
     """Main tunnel worker with auto-reconnect."""
     global tunnel_url, tunnel_ready, _tunnel_running
     
     retries = 0
     
     while _tunnel_running and retries < MAX_RETRIES:
-        # Wait for ComfyUI
+        # Wait for ComfyUI to be ready
         print(f"⏳ Waiting for ComfyUI on port {COMFYUI_PORT}...")
+        waited = 0
         while _tunnel_running and not is_port_open('127.0.0.1', COMFYUI_PORT):
-            time.sleep(1)
+            time.sleep(2)
+            waited += 2
+            if waited % 10 == 0:
+                print(f"   Still waiting... ({waited}s)")
         
         if not _tunnel_running:
             break
         
-        print("✅ ComfyUI ready, starting tunnel...")
+        print("✅ ComfyUI is ready! Starting Pinggy tunnel...")
+        time.sleep(1)  # Brief pause to ensure ComfyUI fully initialized
         
-        # Start tunnel
+        # Reset state
         tunnel_url = None
         tunnel_ready = False
         
-        proc = start_tunnel(token, local_port)
+        proc = start_tunnel(token)
         if proc is None:
             retries += 1
             print(f"⚠ Retry {retries}/{MAX_RETRIES} in {RETRY_DELAY}s...")
             time.sleep(RETRY_DELAY)
             continue
         
-        # Monitor for URL
+        # Monitor output in background thread
         monitor_thread = threading.Thread(target=monitor_tunnel, args=(token,), daemon=True)
         monitor_thread.start()
         
-        # Wait for URL or timeout
+        # Wait up to 45s for URL
         wait_time = 0
-        while not tunnel_ready and wait_time < 30:
+        while not tunnel_ready and wait_time < 45:
             time.sleep(1)
             wait_time += 1
         
-        if tunnel_url:
-            print(f"\n🌍 Public URL: {tunnel_url}")
+        if not tunnel_url:
+            print("⚠ Warning: Could not extract public URL within 45s")
+            print("  Check raw output above for the Pinggy URL")
         
-        # Keep running and monitor for disconnect
+        # Keep alive until tunnel dies
         while _tunnel_running and proc.poll() is None:
             time.sleep(5)
         
-        # Process died
+        # Process died — auto-reconnect
         if _tunnel_running:
             retries += 1
-            print(f"\n⚠ Tunnel disconnected. Retry {retries}/{MAX_RETRIES}...")
+            print(f"\n⚠ Tunnel disconnected. Retry {retries}/{MAX_RETRIES} in {RETRY_DELAY}s...")
             time.sleep(RETRY_DELAY)
     
     if retries >= MAX_RETRIES:
@@ -286,16 +290,20 @@ def main():
     print("🚀 SD Comfy - Pinggy Tunnel (Enhanced)")
     print("=" * 50)
     
-    # Load configuration
-    token, local_port = load_config(CONF)
-    safe_print(f"✅ Loaded config (token: {token[:4]}...)", token)
+    # Load configuration (token only)
+    token = load_config(CONF)
+    safe_print(f"✅ Loaded config — token: {token[:4]}...{token[-8:]}", token)
     
-    # Start tunnel in background
-    worker = threading.Thread(target=tunnel_worker, args=(token, local_port), daemon=True)
+    if "free.pinggy" in token:
+        print("📌 Free Pinggy plan detected — URL may change on reconnect")
+    
+    # Start tunnel worker in background thread
+    # It will wait for ComfyUI to be ready before connecting
+    worker = threading.Thread(target=tunnel_worker, args=(token,), daemon=True)
     worker.start()
     
-    print("🚦 Starting ComfyUI server...")
+    print("🚦 Tunnel worker started — will connect once ComfyUI is ready...")
 
 
-# Auto-run when imported
+# Auto-run when imported via %run
 main()
