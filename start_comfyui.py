@@ -86,6 +86,23 @@ COMFY_CMD = (
 ).strip()
 
 # ─────────────────────────────────────────────────────────────
+# STOP OLD THREADS — signal any previous %run to exit cleanly
+# This prevents multiple daemon threads when cell is re-run
+# ─────────────────────────────────────────────────────────────
+_STOP_KEY = "__sd_comfy_stop__"
+_stop_event = threading.Event()
+try:
+    from IPython import get_ipython as _gip
+    _ip = _gip()
+    if _ip and _STOP_KEY in _ip.user_ns:
+        _ip.user_ns[_STOP_KEY].set()   # tell old thread to quit
+        time.sleep(1)                   # brief grace period
+    if _ip:
+        _ip.user_ns[_STOP_KEY] = _stop_event
+except Exception:
+    pass
+
+# ─────────────────────────────────────────────────────────────
 # Shared state
 # ─────────────────────────────────────────────────────────────
 public_url   = None
@@ -213,13 +230,12 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
     use_cli = os.path.exists(PINGGY_CLI_PATH)
 
     if use_cli:
-        # Pinggy CLI: clean binary, no PTY issues, supports all remote opts
-        # https://pinggy.io/docs/cli/
+        # Pinggy CLI: no PTY issues, supports all remote opts, has built-in reconnect
+        # Do NOT pass -o StrictHostKeyChecking=no here (SSH-only option, crashes CLI)
         base = [
             PINGGY_CLI_PATH,
             "-p", "443",
             f"-R0:127.0.0.1:{COMFYUI_PORT}",
-            "-o", "StrictHostKeyChecking=no",
             cli_host,
         ]
     else:
@@ -234,19 +250,19 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
             cli_host,
         ]
 
-    # Remote options passed after hostname:
-    #   x:https      -> HTTPS only redirect
-    #   b:user:pass  -> Basic Auth (browser password prompt)
+    # Remote options passed after hostname
     remote_opts = ["x:https"]
     if user and passwd:
         remote_opts.append(f"b:{user}:{passwd}")
 
     cmd = base + remote_opts
-    RECONNECT_DELAY = 30  # longer delay to avoid Pinggy rate-limit
+    # CLI has built-in autoreconnect; outer loop is backup for full crashes
+    # Use longer delay for CLI (120s) so CLI internal reconnect handles most cases
+    RECONNECT_DELAY = 120 if use_cli else 30
 
-    _safe_print(f"[Pinggy] Using {'CLI' if use_cli else 'SSH fallback'}")
+    _safe_print(f"[Pinggy] Using {'CLI (built-in reconnect)' if use_cli else 'SSH fallback'}")
 
-    while True:
+    while not _stop_event.is_set():
         try:
             _tunnel_proc = subprocess.Popen(
                 cmd,
@@ -262,13 +278,18 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
             continue
 
         for raw_bytes in iter(_tunnel_proc.stdout.readline, b""):
+            if _stop_event.is_set():
+                _tunnel_proc.terminate()
+                break
+
             line = raw_bytes.decode('utf-8', errors='replace').strip()
             line = _ANSI_RE.sub('', line)  # strip VT100/ANSI from SSH -tt terminal mode
 
-            # Skip noise (bandwidth stats lines)
+            # Skip noise lines
             if "RB:" in line and "SB:" in line:
                 continue
-            # Skip blank lines after ANSI stripping
+            if "Unable to initiate the TUI" in line:
+                continue  # suppress noisy CLI warning - expected in headless mode
             if not line:
                 continue
 
@@ -280,7 +301,7 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
             _safe_print(f"[Pinggy] {safe}")
 
             if "already active" in line:
-                _safe_print("[Pinggy] Conflict - 'force' will close it on reconnect.")
+                _safe_print("[Pinggy] Conflict — 'force' will close it on reconnect.")
                 _safe_print("[Pinggy] Or terminate at: https://dashboard.pinggy.io/activetunnels")
 
             url = _extract_pinggy_url(line)
@@ -294,6 +315,10 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
                         ip.user_ns["public_url"] = url
                 except Exception:
                     pass
+
+        if _stop_event.is_set():
+            _safe_print("[Pinggy] Stopped (new run detected).")
+            break
 
         # Process ended — reconnect after delay
         ret = _tunnel_proc.poll() if _tunnel_proc else -1
