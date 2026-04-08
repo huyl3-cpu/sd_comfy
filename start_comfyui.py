@@ -249,40 +249,31 @@ def _pinggy_worker(token: str) -> None:
     # Detect token type from host: free.pinggy.io vs pro.pinggy.io
     is_pro = "pro.pinggy.io" in token
 
-    # Remote port: for Pro persistent domains, Pinggy maps the domain to a fixed port.
-    # Using -R0 (auto) allocates a random port that doesn't match → 403.
-    # Set Pinggy_port = <port from dashboard.pinggy.io/domains> to fix this.
-    remote_forward_port = PINGGY_PORT if (is_pro and PINGGY_PORT > 0) else 0
-    if is_pro and PINGGY_PORT == 0:
-        _print("[Pinggy] ⚠ Pro token: Pinggy_port not set! URL may 403.")
-        _print("[Pinggy] → Get your port from dashboard.pinggy.io/domains and set:")
-        _print("[Pinggy] →   Pinggy_port = 11605  # (your port number)")
-
     if use_cli:
-        # Dashboard HTTPS Only toggle handles HTTPS server-side — no need to
-        # pass x:https. The -t flag requires a real PTY which Colab does not
-        # provide ("Pseudo-terminal will not be allocated" warning).
+        # Pinggy CLI auto-assigns the correct port from the token/persistent domain.
+        # -R0 = auto, CLI negotiates with Pinggy server to use the right port.
         cmd = [
             PINGGY_CLI_PATH,
             "-p", "443",
-            f"-R{remote_forward_port}:localhost:{COMFYUI_PORT}",
+            f"-R0:localhost:{COMFYUI_PORT}",
             "-o", "StrictHostKeyChecking=no",
             "-o", "ServerAliveInterval=30",
             cli_host,   # plain token — HTTPS + Force handled via dashboard
         ]
     else:
         # SSH fallback: +force in username to terminate stale tunnels.
-        # HTTPS handled by Pinggy Dashboard HTTPS Only toggle (server-side).
-        # Omit -t/x:https: -t requires real PTY unavailable in Colab.
+        # PINGGY_PORT can be set as override; 0 = auto.
+        remote_port = PINGGY_PORT if PINGGY_PORT > 0 else 0
         cmd = [
             "ssh",
             "-p", "443",
-            f"-R{remote_forward_port}:127.0.0.1:{COMFYUI_PORT}",
+            f"-R{remote_port}:127.0.0.1:{COMFYUI_PORT}",
             "-o", "StrictHostKeyChecking=no",
             "-o", "ServerAliveInterval=30",
             "-o", "ServerAliveCountMax=3",
             ssh_host,   # +force in username to terminate existing tunnel
         ]
+
 
     # CLI has built-in autoreconnect; outer loop is only a crash-recovery backup
     RECONNECT_DELAY = 120 if use_cli else 30
