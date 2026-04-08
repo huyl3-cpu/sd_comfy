@@ -69,6 +69,13 @@ _tunnel_proc = None
 # HELPERS
 # ─────────────────────────────────────────────────────────────
 
+def _safe_print(msg: str) -> None:
+    """Print safely, replacing unencodable characters (avoids Jupyter UnicodeEncodeError)."""
+    try:
+        print(msg)
+    except UnicodeEncodeError:
+        print(msg.encode('utf-8', errors='replace').decode('utf-8'))
+
 def _is_port_open(port: int, timeout: float = 1.0) -> bool:
     try:
         with socket.create_connection(("127.0.0.1", port), timeout=timeout):
@@ -79,14 +86,14 @@ def _is_port_open(port: int, timeout: float = 1.0) -> bool:
 
 def _wait_comfyui(port: int, poll: int = 2) -> None:
     """Block until ComfyUI is accepting connections."""
-    print(f"⏳ Waiting for ComfyUI on port {port}...")
+    _safe_print(f"[SD-Comfy] Waiting for ComfyUI on port {port}...")
     waited = 0
     while not _is_port_open(port):
         time.sleep(poll)
         waited += poll
         if waited % 10 == 0:
-            print(f"   Still waiting... ({waited}s elapsed)")
-    print("✅ ComfyUI is ready!")
+            _safe_print(f"[SD-Comfy] Still waiting... ({waited}s elapsed)")
+    _safe_print("[SD-Comfy] ComfyUI is ready!")
     time.sleep(1)  # brief grace period
 
 
@@ -106,16 +113,12 @@ def _extract_pinggy_url(text: str):
 
 
 def _print_url_banner(url: str) -> None:
-    bar = "█" * 62
-    print(f"\n{bar}")
-    print(f"█{'':^60}█")
-    print(f"█{'  🌐  COMFYUI IS ONLINE':^60}█")
-    print(f"█{'':^60}█")
-    print(f"█  \033[1;93m{url:<58}\033[0m█")
-    print(f"█{'':^60}█")
-    print(f"█  \033[90mClick the link above to open ComfyUI\033[0m{'':<23}█")
-    print(f"█{'':^60}█")
-    print(f"{bar}\n")
+    bar = "=" * 62
+    _safe_print(f"\n{bar}")
+    _safe_print(f"  [SD-Comfy] COMFYUI IS ONLINE")
+    _safe_print(f"  {url}")
+    _safe_print(f"  (Click the link above to open ComfyUI)")
+    _safe_print(f"{bar}\n")
 
 
 # ─────────────────────────────────────────────────────────────
@@ -137,10 +140,10 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
     _wait_comfyui(COMFYUI_PORT)
 
     host_info = token.split("@")[1] if "@" in token else token
-    print(f"\ud83d\udd17 Starting Pinggy tunnel \u2192 {host_info}")
+    _safe_print(f"[Pinggy] Starting tunnel -> {host_info}")
     if user:
-        print(f"   🔒 Password Protect: ON  (user: {user})")
-    print(f"   🔐 HTTPS only: ON")
+        _safe_print(f"[Pinggy] Password Protect: ON (user: {user})")
+    _safe_print("[Pinggy] HTTPS only: ON | Force reconnect: ON")
 
     # Build SSH command exactly as Pinggy dashboard recommends:
     # ssh -p 443 -R0:127.0.0.1:8188 -o StrictHostKeyChecking=no
@@ -166,6 +169,7 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
     if user and passwd:
         tunnel_opts.append(f"b:{user}:{passwd}")  # Password Protect
     tunnel_opts.append("s:https")                  # HTTPS only
+    tunnel_opts.append("f")                        # Force: close existing tunnel with same token
 
     cmd = base_cmd + tunnel_opts
     RECONNECT_DELAY = 10
@@ -200,7 +204,7 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
                     safe = safe.replace(passwd, "[PASS]")
                 if "@" in token:
                     safe = safe.replace(token.split("@")[0], "[TOKEN]")
-                print(f"\ud83c\udf10 {safe}")
+                _safe_print(f"[Pinggy] {safe}")
 
             url = _extract_pinggy_url(line)
             if url and not public_url:
@@ -215,12 +219,12 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
                 except Exception:
                     pass
 
-        # Process ended — reconnect after delay
+        # Process ended -- reconnect after delay
         ret = _tunnel_proc.poll()
         if ret is not None and ret != 0:
-            print(f"\u26a0 Tunnel disconnected (exit {ret}), reconnecting in {RECONNECT_DELAY}s...")
+            _safe_print(f"[Pinggy] Tunnel disconnected (exit {ret}), reconnecting in {RECONNECT_DELAY}s...")
         else:
-            print(f"\u26a0 Tunnel ended, reconnecting in {RECONNECT_DELAY}s...")
+            _safe_print(f"[Pinggy] Tunnel ended, reconnecting in {RECONNECT_DELAY}s...")
         public_url = None  # reset so URL banner shows again after reconnect
         time.sleep(RECONNECT_DELAY)
 
@@ -233,17 +237,17 @@ def _cloudflare_worker() -> None:
     global public_url
 
     if not os.path.exists("/usr/local/bin/cloudflared"):
-        print("⬇ Installing cloudflared...")
+        _safe_print("[Cloudflare] Installing cloudflared...")
         os.system(
             "wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/"
             "cloudflared-linux-amd64.deb "
             "&& dpkg -i cloudflared-linux-amd64.deb > /dev/null "
             "&& rm -f cloudflared-linux-amd64.deb"
         )
-        print("✅ cloudflared installed")
+        _safe_print("[Cloudflare] cloudflared installed")
 
     _wait_comfyui(COMFYUI_PORT)
-    print("🔗 Starting Cloudflare tunnel...")
+    _safe_print("[Cloudflare] Starting tunnel...")
 
     p = subprocess.Popen(
         ["cloudflared", "tunnel", "--url", f"http://localhost:{COMFYUI_PORT}"],
@@ -278,7 +282,7 @@ def _cloudflare_worker() -> None:
 # ─────────────────────────────────────────────────────────────
 
 print("=" * 62)
-print(f"  SD Comfy — Start ComfyUI  |  Tunnel: {TUNNEL_TYPE}")
+_safe_print(f"  SD Comfy | ComfyUI + {TUNNEL_TYPE} Tunnel")
 print("=" * 62)
 
 # ── Start tunnel in background ────────────────────────────────
@@ -323,5 +327,5 @@ for _line in iter(_comfy_proc.stdout.readline, ""):
     # Print public link once both ComfyUI + tunnel are ready
     if _comfyui_ready and not _printed_link and public_url:
         time.sleep(2)
-        print(f"\n\n\033[1;96m🌐 COMFYUI PUBLIC LINK: {public_url}\033[0m\n")
+        _safe_print(f"\n[SD-Comfy] PUBLIC LINK: {public_url}\n")
         _printed_link = True
