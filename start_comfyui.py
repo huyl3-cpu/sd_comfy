@@ -412,6 +412,11 @@ t.start()
 
 # ── Launch ComfyUI ─────────────────────────────────────────────
 os.chdir("/content/")
+
+# Kill any process still holding COMFYUI_PORT (survives kernel restart)
+_safe_print(f"[SD-Comfy] Checking port {COMFYUI_PORT}...")
+os.system(f"fuser -k {COMFYUI_PORT}/tcp 2>/dev/null; sleep 1")
+
 _safe_print(f"\n[SD-Comfy] Launching ComfyUI on port {COMFYUI_PORT}...\n")
 
 _comfy_proc = subprocess.Popen(
