@@ -70,14 +70,10 @@ EXTRA_ARGS    = _cfg("Comfy_ExtraArgs", "")                   # optional extra C
 #   Runtime → Manage secrets → Add: PINGGY_USER / PINGGY_PASS
 # Or set them as hidden variables BEFORE %run in your cell:
 #   Pinggy_user = "your_user" ; Pinggy_pass = "your_pass"
-PINGGY_USER = (
-    os.environ.get("PINGGY_USER")
-    or _cfg("Pinggy_user", "")
-)
-PINGGY_PASS = (
-    os.environ.get("PINGGY_PASS")
-    or _cfg("Pinggy_pass", "")
-)
+PINGGY_USER = ""
+PINGGY_PASS = ""
+# Password protection is configured in Pinggy Dashboard -> Token settings
+# Not passed via command line (avoids 403 when not configured in dashboard)
 
 COMFY_CMD = (
     f"/content/ComfyUI/main.py "
@@ -200,12 +196,12 @@ def _install_pinggy_cli() -> None:
     _safe_print("[Pinggy] WARNING: CLI install failed - using SSH fallback.")
 
 
-def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
+def _pinggy_worker(token: str) -> None:
     """Wait for ComfyUI then start Pinggy tunnel.
 
     Uses Pinggy CLI (preferred) or SSH (fallback).
     TOKEN+force@pro.pinggy.io forces-close any existing tunnel on connect.
-    Remote opts x:https and b:user:pass are passed as CLI remote args.
+    Remote opt x:https is passed to enable HTTPS-only redirect.
     """
     global public_url, _tunnel_proc
 
@@ -214,8 +210,6 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
 
     host_info = token.split("@")[1] if "@" in token else token
     _safe_print(f"[Pinggy] Starting tunnel -> {host_info}")
-    if user:
-        _safe_print(f"[Pinggy] Password Protect: ON (user: {user})")
     _safe_print("[Pinggy] HTTPS only: ON | Force: ON")
 
     # Build TOKEN+force@pro.pinggy.io
@@ -256,10 +250,10 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
             cli_host,
         ]
 
-    # Remote options passed after hostname
+    # Remote options (x:https = redirect HTTP to HTTPS)
+    # Password protection: configure in Pinggy Dashboard -> Token settings
+    # Do NOT add b:user:pass here — causes 403 if not matching dashboard config
     remote_opts = ["x:https"]
-    if user and passwd:
-        remote_opts.append(f"b:{user}:{passwd}")
 
     cmd = base + remote_opts
     # CLI has built-in autoreconnect; outer loop is backup for full crashes
@@ -300,8 +294,6 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
                 continue
 
             safe = line
-            if passwd:
-                safe = safe.replace(passwd, "[PASS]")
             if "@" in token:
                 safe = safe.replace(token.split("@")[0], "[TOKEN]")
             _safe_print(f"[Pinggy] {safe}")
@@ -398,7 +390,7 @@ if TUNNEL_TYPE == "Pinggy":
         raise SystemExit("❌ Set Pinggy_token in the cell before running!")
     t = threading.Thread(
         target=_pinggy_worker,
-        args=(PINGGY_TOKEN, PINGGY_USER, PINGGY_PASS),
+        args=(PINGGY_TOKEN,),
         daemon=True
     )
 else:
