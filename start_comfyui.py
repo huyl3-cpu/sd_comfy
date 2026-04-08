@@ -230,37 +230,31 @@ def _pinggy_worker(token: str) -> None:
     is_pro = "pro.pinggy.io" in token
 
     if use_cli:
-        # Free:  ./pinggy -p 443 -R0:localhost:8188 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 TOKEN@free.pinggy.io
-        # Pro:   ./pinggy -p 443 -R0:localhost:8188 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -t TOKEN@pro.pinggy.io x:https
-        base = [
+        # Dashboard HTTPS Only toggle handles HTTPS server-side — no need to
+        # pass x:https. The -t flag requires a real PTY which Colab does not
+        # provide ("Pseudo-terminal will not be allocated" warning).
+        cmd = [
             PINGGY_CLI_PATH,
             "-p", "443",
             f"-R0:localhost:{COMFYUI_PORT}",
             "-o", "StrictHostKeyChecking=no",
             "-o", "ServerAliveInterval=30",
+            cli_host,   # plain token — HTTPS + Force handled via dashboard
         ]
-        if is_pro:
-            base.append("-t")   # -t needed for remote args on pro
-        base.append(cli_host)   # plain token, no +force
-        if is_pro:
-            base.append("x:https")
-        cmd = base
     else:
-        # SSH fallback with +force in username
-        base = [
+        # SSH fallback: +force in username to terminate stale tunnels.
+        # HTTPS handled by Pinggy Dashboard HTTPS Only toggle (server-side).
+        # Omit -t/x:https: -t requires real PTY unavailable in Colab.
+        cmd = [
             "ssh",
             "-p", "443",
             f"-R0:127.0.0.1:{COMFYUI_PORT}",
             "-o", "StrictHostKeyChecking=no",
             "-o", "ServerAliveInterval=30",
             "-o", "ServerAliveCountMax=3",
+            ssh_host,   # +force in username to terminate existing tunnel
         ]
-        if is_pro:
-            base.append("-t")
-        base.append(ssh_host)   # +force to terminate existing tunnel
-        if is_pro:
-            base.append("x:https")
-        cmd = base
+
 
     # CLI has built-in autoreconnect; outer loop is only a crash-recovery backup
     RECONNECT_DELAY = 120 if use_cli else 30
