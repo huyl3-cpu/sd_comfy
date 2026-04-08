@@ -22,6 +22,9 @@ import sys
 import threading
 import time
 
+# Strip ANSI/VT100 escape sequences emitted by SSH -tt terminal mode
+_ANSI_RE = re.compile(r'\x1b\[[0-9;?]*[a-zA-Z]|\x1b[^\[]')
+
 # ─────────────────────────────────────────────────────────────
 # SANITIZE sys.stdout — intercept ALL output, strip surrogates
 # This MUST run before any print() to prevent Jupyter
@@ -155,27 +158,27 @@ PINGGY_CLI_URL  = (
 
 
 def _install_pinggy_cli() -> None:
-    """Download Pinggy CLI binary for Linux x86-64 if not already installed.
-
-    Pinggy CLI advantages over raw SSH:
-      - No PTY/terminal encoding issues in Colab subprocesses
-      - force, x:https, b:user:pass all work cleanly without -t flag
-      - Built-in autoreconnect support
-      - Clean text output, no binary escape sequences
-
-    CLI docs: https://pinggy.io/docs/cli/
-    """
+    """Download Pinggy CLI binary for Linux x86-64 if not already installed."""
     if os.path.exists(PINGGY_CLI_PATH):
-        return
+        # Verify it's actually executable
+        if os.access(PINGGY_CLI_PATH, os.X_OK):
+            return
+        os.remove(PINGGY_CLI_PATH)  # remove corrupt file
+
     _safe_print("[Pinggy] Installing Pinggy CLI (one-time ~5MB)...")
+    # -L follows GitHub release redirects, -f fails on HTTP errors
     ret = os.system(
-        f"wget -q -O {PINGGY_CLI_PATH} '{PINGGY_CLI_URL}' "
-        f"&& chmod +x {PINGGY_CLI_PATH}"
+        f"wget -q -L -f -O {PINGGY_CLI_PATH} '{PINGGY_CLI_URL}' "
+        f"&& chmod +x {PINGGY_CLI_PATH} "
+        f"&& echo 'Pinggy CLI OK'"
     )
-    if ret == 0:
+    if ret == 0 and os.path.exists(PINGGY_CLI_PATH) and os.access(PINGGY_CLI_PATH, os.X_OK):
         _safe_print("[Pinggy] Pinggy CLI installed OK.")
     else:
-        _safe_print("[Pinggy] WARNING: CLI install failed, will fall back to SSH.")
+        # Clean up partial download
+        if os.path.exists(PINGGY_CLI_PATH):
+            os.remove(PINGGY_CLI_PATH)
+        _safe_print("[Pinggy] WARNING: CLI install failed - using SSH fallback.")
 
 
 def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
@@ -260,18 +263,21 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
 
         for raw_bytes in iter(_tunnel_proc.stdout.readline, b""):
             line = raw_bytes.decode('utf-8', errors='replace').strip()
+            line = _ANSI_RE.sub('', line)  # strip VT100/ANSI from SSH -tt terminal mode
 
             # Skip noise (bandwidth stats lines)
             if "RB:" in line and "SB:" in line:
                 continue
+            # Skip blank lines after ANSI stripping
+            if not line:
+                continue
 
-            if line:
-                safe = line
-                if passwd:
-                    safe = safe.replace(passwd, "[PASS]")
-                if "@" in token:
-                    safe = safe.replace(token.split("@")[0], "[TOKEN]")
-                _safe_print(f"[Pinggy] {safe}")
+            safe = line
+            if passwd:
+                safe = safe.replace(passwd, "[PASS]")
+            if "@" in token:
+                safe = safe.replace(token.split("@")[0], "[TOKEN]")
+            _safe_print(f"[Pinggy] {safe}")
 
             if "already active" in line:
                 _safe_print("[Pinggy] Conflict - 'force' will close it on reconnect.")
