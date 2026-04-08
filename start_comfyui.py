@@ -170,12 +170,16 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
         _safe_print(f"[Pinggy] Password Protect: ON (user: {user})")
     _safe_print("[Pinggy] HTTPS only: ON | Force reconnect: ON")
 
-    # Simple SSH command — all security settings (HTTPS only, Password Protect,
-    # Force, Keep Alive) are configured in the Pinggy Dashboard.
-    # Removing -t flag to prevent SSH from outputting binary terminal escape
-    # sequences that cause Jupyter UnicodeEncodeError.
-    cmd = [
-        "ssh", "-T",   # no PTY allocation (-T = explicitly disable)
+    # SSH command per Pinggy documentation:
+    # https://pinggy.io/docs/http_tunnels/ and https://pinggy.io/docs/advanced/advanced_options/
+    #
+    # -t is REQUIRED when passing tunnel options after the host
+    # Options format (space separated after token):
+    #   b:user:pass  -> Basic Auth (https://pinggy.io/docs/http_tunnels/basic_auth/)
+    #   x:https      -> HTTPS only redirect (https://pinggy.io/docs/http_tunnels/)
+    #   force        -> Close existing tunnel (https://pinggy.io/docs/advanced/advanced_options/)
+    base_cmd = [
+        "ssh", "-t",   # -t required for Pinggy options to be processed
         "-p", "443",
         f"-R0:127.0.0.1:{COMFYUI_PORT}",
         "-o", "StrictHostKeyChecking=no",
@@ -183,6 +187,15 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
         "-o", "ServerAliveCountMax=3",
         token.strip(),
     ]
+
+    # Pinggy tunnel options (SSH remote command args, requires -t)
+    tunnel_opts = []
+    if user and passwd:
+        tunnel_opts.append(f"b:{user}:{passwd}")  # Basic Auth
+    tunnel_opts.append("x:https")                  # HTTPS only (correct per docs)
+    tunnel_opts.append("force")                    # Force close existing tunnel (correct per docs)
+
+    cmd = base_cmd + tunnel_opts
     RECONNECT_DELAY = 10
 
     # Auto-reconnect loop (equivalent to dashboard's: while true; do ssh ...; sleep 10; done)
