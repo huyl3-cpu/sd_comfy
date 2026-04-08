@@ -332,6 +332,12 @@ def _pinggy_worker(token: str) -> None:
                 _print("[Pinggy] Conflict — 'force' will close it on reconnect.")
                 _print("[Pinggy] Or terminate at: https://dashboard.pinggy.io/activetunnels")
 
+            # Detect Web Debugger as cause of 403
+            if any(k in line for k in ["403", "Forbidden", "Access Denied"]):
+                _print("[Pinggy] ⚠ 403 detected! Most likely cause: Web Debugger is ON in dashboard.")
+                _print("[Pinggy] → Go to https://dashboard.pinggy.io -> Advanced -> Web Debugger: OFF -> Save")
+                _print("[Pinggy] → Then re-run this cell.")
+
             url = _extract_pinggy_url(line)
             if url and not public_url:
                 public_url = url
@@ -414,6 +420,8 @@ def _cloudflare_worker() -> None:
             except Exception:
                 pass
             _print_url_banner(public_url)
+            _safe_print("⚠ [Cloudflare] Lần đầu truy cập sẽ hiện trang 'Privacy Notice' của Cloudflare.")
+            _safe_print("⚠ [Cloudflare] Nhấn nút 'Click to proceed' để vào ComfyUI.")
             break
 
     if _tunnel_proc.poll() is None:
