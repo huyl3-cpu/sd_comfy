@@ -412,10 +412,14 @@ else:
 t.start()
 
 # ── Cleanup previous ComfyUI instance ─────────────────────────
-# Old ComfyUI subprocess survives kernel restart and holds port + db lock
+# Old ComfyUI subprocess survives kernel restart and holds port + db lock.
+# Use -9 (SIGKILL) for immediate kill; lsof catches any process on the port.
 _safe_print(f"[SD-Comfy] Stopping any existing ComfyUI process...")
-os.system("pkill -f 'ComfyUI/main.py' 2>/dev/null || true")
-os.system(f"fuser -k {COMFYUI_PORT}/tcp 2>/dev/null || true")
+os.system("pkill -9 -f 'ComfyUI/main.py' 2>/dev/null || true")
+os.system(
+    f"PID=$(lsof -t -i:{COMFYUI_PORT} 2>/dev/null); "
+    f"[ -n \"$PID\" ] && kill -9 $PID 2>/dev/null || true"
+)
 # Remove SQLite WAL/SHM lock files (prevents 'cannot acquire lock' error)
 os.system("rm -f /content/ComfyUI/user/comfyui.db-wal "
           "/content/ComfyUI/user/comfyui.db-shm 2>/dev/null || true")
