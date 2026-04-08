@@ -138,11 +138,15 @@ def _wait_comfyui(port: int, poll: int = 2) -> None:
 
 def _extract_pinggy_url(text: str):
     """Return the first Pinggy HTTPS URL found in text, or None."""
+    # Covers all known Pinggy URL formats:
+    #   Pro:  https://xxx.a.pinggy.link
+    #   Free: https://xxx-IP.run.pinggy-free.link
+    #   Old free: https://xxx.free.pinggy.link
     patterns = [
         r'https://[a-zA-Z0-9\-]+\.a\.pinggy\.link',
+        r'https://[a-zA-Z0-9\-\.]+\.pinggy-free\.link',
         r'https://[a-zA-Z0-9\-]+\.free\.pinggy\.link',
         r'https://[a-zA-Z0-9\-]+\.pinggy\.link',
-        r'https://[a-zA-Z0-9\-]+\.a\.free\.pinggy\.link',
     ]
     for p in patterns:
         m = re.search(p, text)
@@ -347,7 +351,7 @@ def _pinggy_worker(token: str) -> None:
 # ─────────────────────────────────────────────────────────────
 
 def _cloudflare_worker() -> None:
-    global public_url
+    global public_url, _tunnel_proc
 
     if not os.path.exists("/usr/local/bin/cloudflared"):
         _safe_print("[Cloudflare] Installing cloudflared...")
@@ -362,7 +366,18 @@ def _cloudflare_worker() -> None:
     _wait_comfyui(COMFYUI_PORT)
     _safe_print("[Cloudflare] Starting tunnel...")
 
-    p = subprocess.Popen(
+    # Stop watcher: kill cloudflare process when stop_event fires
+    def _cf_stop_watcher():
+        _stop_event.wait()
+        try:
+            global _tunnel_proc
+            if _tunnel_proc:
+                _tunnel_proc.terminate()
+        except (NameError, Exception):
+            pass
+    threading.Thread(target=_cf_stop_watcher, daemon=True).start()
+
+    _tunnel_proc = subprocess.Popen(
         ["cloudflared", "tunnel", "--url", f"http://localhost:{COMFYUI_PORT}"],
         stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
@@ -370,8 +385,11 @@ def _cloudflare_worker() -> None:
         text=True,
     )
 
-    for raw_line in iter(p.stdout.readline, ""):
-        line = raw_line.strip()
+    for raw_line in iter(_tunnel_proc.stdout.readline, ""):
+        if _stop_event.is_set():
+            _tunnel_proc.terminate()
+            break
+        line = _ANSI_RE.sub("", raw_line).strip()  # strip ANSI codes
         m = re.search(r"https://[^\s]+\.trycloudflare\.com", line)
         if m and not public_url:
             public_url = m.group()
@@ -385,8 +403,8 @@ def _cloudflare_worker() -> None:
             _print_url_banner(public_url)
             break
 
-    if p.poll() is None:
-        p.wait()
+    if _tunnel_proc.poll() is None:
+        _tunnel_proc.wait()
 
 
 # ─────────────────────────────────────────────────────────────
