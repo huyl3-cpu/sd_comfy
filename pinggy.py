@@ -124,23 +124,20 @@ def start_tunnel(token: str) -> Optional[subprocess.Popen]:
       Free : NyiGDbViHdm@free.pinggy.io
       Pro  : fn5MdCAn86q@pro.pinggy.io
     
-    '+t' appended to host disables Pinggy Password Protection (fixes 403).
+    Uses token directly as SSH target (matches Pinggy dashboard command).
+    Password Protect should be disabled in Pinggy dashboard settings.
     """
     global tunnel_proc
     
-    # Detect host from token and append '+t' to disable password protection
-    # token = "MYTOKEN@free.pinggy.io"  or  "MYTOKEN@pro.pinggy.io"
-    if '@' in token:
-        user_part, host_part = token.rsplit('@', 1)
-        # '+t' = disable basic auth (password protection) on Pinggy
-        host_with_noauth = host_part + '+t'
-        ssh_target = f"{user_part}@{host_with_noauth}"
-    else:
-        ssh_target = token  # fallback: use as-is
+    # Use token directly as SSH target — matches Pinggy recommended command:
+    # ssh -p 443 -R0:localhost:8188 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 TOKEN@pro.pinggy.io
+    ssh_target = token.strip()
+    host_display = ssh_target.split('@')[1] if '@' in ssh_target else ssh_target
+    print(f"🔗 SSH → {host_display}")
     
     cmd = [
         'ssh',
-        '-T',                         # disable pseudo-terminal (no TTY needed)
+        '-T',                         # no pseudo-terminal (Colab has no TTY)
         '-p', '443',
         f'-R0:localhost:{COMFYUI_PORT}',
         '-o', 'StrictHostKeyChecking=no',
@@ -151,12 +148,10 @@ def start_tunnel(token: str) -> Optional[subprocess.Popen]:
         ssh_target
     ]
     
-    print(f"🔗 SSH → {ssh_target.split('@')[1]} (password protection: OFF)")
-    
     try:
         tunnel_proc = subprocess.Popen(
             cmd,
-            stdin=subprocess.DEVNULL,  # no interactive input
+            stdin=subprocess.DEVNULL,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
