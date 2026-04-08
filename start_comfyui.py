@@ -92,7 +92,10 @@ try:
     _ip = _gip()
     if _ip and _STOP_KEY in _ip.user_ns:
         _ip.user_ns[_STOP_KEY].set()   # tell old thread to quit
-        time.sleep(1)                   # brief grace period
+        try:
+            time.sleep(1)               # brief grace period — allow old threads to exit
+        except KeyboardInterrupt:
+            pass                        # ignore interrupt during grace period
     if _ip:
         _ip.user_ns[_STOP_KEY] = _stop_event
 except Exception:
@@ -218,11 +221,15 @@ def _pinggy_worker(token: str) -> None:
     """
     global public_url, _tunnel_proc
 
+    # Capture _safe_print locally to avoid NameError if module is re-executed
+    # while this thread is still running from a previous %run invocation.
+    _print = _safe_print
+
     _wait_comfyui(COMFYUI_PORT)
     _install_pinggy_cli()
 
     host_info = token.split("@")[1] if "@" in token else token
-    _safe_print(f"[Pinggy] Starting tunnel -> {host_info}")
+    _print(f"[Pinggy] Starting tunnel -> {host_info}")
 
     parts = token.strip().split("@", 1)
     # CLI: plain token (no +force — causes 'Unknown extended option' warning)
@@ -268,7 +275,7 @@ def _pinggy_worker(token: str) -> None:
     # CLI has built-in autoreconnect; outer loop is only a crash-recovery backup
     RECONNECT_DELAY = 120 if use_cli else 30
 
-    _safe_print(f"[Pinggy] Using {'CLI' if use_cli else 'SSH fallback'} | {'Pro' if is_pro else 'Free'} token")
+    _print(f"[Pinggy] Using {'CLI' if use_cli else 'SSH fallback'} | {'Pro' if is_pro else 'Free'} token")
 
     # Stop watcher: forcefully kill tunnel process when stop_event fires.
     # This unblocks readline() which would otherwise block indefinitely.
@@ -293,7 +300,7 @@ def _pinggy_worker(token: str) -> None:
                 bufsize=0,
             )
         except Exception as e:
-            _safe_print(f"[Pinggy] Failed to start tunnel: {e}")
+            _print(f"[Pinggy] Failed to start tunnel: {e}")
             time.sleep(RECONNECT_DELAY)
             continue
 
@@ -316,11 +323,11 @@ def _pinggy_worker(token: str) -> None:
             safe = line
             if "@" in token:
                 safe = safe.replace(token.split("@")[0], "[TOKEN]")
-            _safe_print(f"[Pinggy] {safe}")
+            _print(f"[Pinggy] {safe}")
 
             if "already active" in line:
-                _safe_print("[Pinggy] Conflict — 'force' will close it on reconnect.")
-                _safe_print("[Pinggy] Or terminate at: https://dashboard.pinggy.io/activetunnels")
+                _print("[Pinggy] Conflict — 'force' will close it on reconnect.")
+                _print("[Pinggy] Or terminate at: https://dashboard.pinggy.io/activetunnels")
 
             url = _extract_pinggy_url(line)
             if url and not public_url:
@@ -335,15 +342,15 @@ def _pinggy_worker(token: str) -> None:
                     pass
 
         if _stop_event.is_set():
-            _safe_print("[Pinggy] Stopped (new run detected).")
+            _print("[Pinggy] Stopped (new run detected).")
             break
 
         # Process ended — reconnect after delay
         ret = _tunnel_proc.poll() if _tunnel_proc else -1
         if ret is not None and ret != 0:
-            _safe_print(f"[Pinggy] Disconnected (exit {ret}), reconnecting in {RECONNECT_DELAY}s...")
+            _print(f"[Pinggy] Disconnected (exit {ret}), reconnecting in {RECONNECT_DELAY}s...")
         else:
-            _safe_print(f"[Pinggy] Ended, reconnecting in {RECONNECT_DELAY}s...")
+            _print(f"[Pinggy] Ended, reconnecting in {RECONNECT_DELAY}s...")
         public_url = None
         _tunnel_proc = None
         time.sleep(RECONNECT_DELAY)
