@@ -189,11 +189,11 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
     ]
 
     # Pinggy tunnel options (SSH remote command args, requires -t)
-    tunnel_opts = []
+    # 'force' must be first so Pinggy terminates existing tunnel before processing other opts
+    tunnel_opts = ["force"]                        # Force close existing tunnel (first!)
     if user and passwd:
         tunnel_opts.append(f"b:{user}:{passwd}")  # Basic Auth
-    tunnel_opts.append("x:https")                  # HTTPS only (correct per docs)
-    tunnel_opts.append("force")                    # Force close existing tunnel (correct per docs)
+    tunnel_opts.append("x:https")                  # HTTPS only redirect
 
     cmd = base_cmd + tunnel_opts
     RECONNECT_DELAY = 10
@@ -233,11 +233,10 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
                     safe = safe.replace(token.split("@")[0], "[TOKEN]")
                 _safe_print(f"[Pinggy] {safe}")
 
-            # Check for "already active" error and warn user
+            # Check for "already active" error
             if "already active" in line:
-                _safe_print("[Pinggy] ERROR: Another tunnel with this token is running.")
-                _safe_print("[Pinggy] FIX: Go to Pinggy Dashboard -> Advanced -> Force: ON")
-                _safe_print("[Pinggy] Then save and restart this cell.")
+                _safe_print("[Pinggy] Tunnel conflict detected. 'force' will apply on reconnect.")
+                _safe_print("[Pinggy] Or manually terminate at: https://dashboard.pinggy.io/activetunnels")
 
             url = _extract_pinggy_url(line)
             if url and not public_url:
@@ -253,12 +252,13 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
                     pass
 
         # Process ended -- reconnect after delay
-        ret = _tunnel_proc.poll()
+        ret = _tunnel_proc.poll() if _tunnel_proc else -1
         if ret is not None and ret != 0:
             _safe_print(f"[Pinggy] Tunnel disconnected (exit {ret}), reconnecting in {RECONNECT_DELAY}s...")
         else:
             _safe_print(f"[Pinggy] Tunnel ended, reconnecting in {RECONNECT_DELAY}s...")
-        public_url = None  # reset so URL banner shows again after reconnect
+        public_url = None
+        _tunnel_proc = None  # reset before next iteration
         time.sleep(RECONNECT_DELAY)
 
 
