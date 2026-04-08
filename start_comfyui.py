@@ -170,42 +170,34 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
         _safe_print(f"[Pinggy] Password Protect: ON (user: {user})")
     _safe_print("[Pinggy] HTTPS only: ON | Force reconnect: ON")
 
-    # Build SSH command per Pinggy documentation:
-    # https://pinggy.io/docs/usages/ (section 4: force, section 2: basic auth, section 5: x:https)
+    # Architecture:
+    #   - 'force' -> USERNAME keyword (TOKEN+force@host): closes existing tunnel on connect
+    #   - '-tt'   -> Force PTY: Pinggy runs in interactive mode, SSH stays alive indefinitely
+    #              (Without remote command args after host, Pinggy does NOT start a command
+    #              session, so SSH + Pinggy stay connected as long as the network is up)
+    #   - NO remote args: x:https and b:user:pass go in Pinggy Dashboard settings instead
     #
-    # Keywords go in USERNAME field with '+' separator:
-    #   TOKEN+force@pro.pinggy.io  -> force close existing tunnel
-    #
-    # Remote command args (after host, requires -t):
-    #   b:user:pass  -> Basic Auth
-    #   x:https      -> HTTPS only redirect
+    # Configure in Pinggy Dashboard: https://dashboard.pinggy.io
+    #   -> Token settings -> HTTPS Only, Password Protect, Force
 
-    # Build username: token+force to force-close any existing session
-    # Example: fn5MdCAn86q+force@pro.pinggy.io
+    # Build token+force username
     parts = token.strip().split("@", 1)
     if len(parts) == 2 and "+force" not in parts[0]:
         ssh_host = f"{parts[0]}+force@{parts[1]}"
     else:
         ssh_host = token.strip()
 
-    base_cmd = [
-        "ssh", "-t",   # -t required for remote command args to be processed
+    cmd = [
+        "ssh", "-tt",  # force PTY -> Pinggy interactive mode -> SSH stays alive
         "-p", "443",
         f"-R0:127.0.0.1:{COMFYUI_PORT}",
         "-o", "StrictHostKeyChecking=no",
         "-o", "ServerAliveInterval=30",
         "-o", "ServerAliveCountMax=3",
-        ssh_host,       # TOKEN+force@pro.pinggy.io
+        ssh_host,
+        # No remote command args: configure HTTPS/Password in Pinggy Dashboard
     ]
-
-    # Remote command args (space-separated after host, requires -t)
-    tunnel_opts = []
-    if user and passwd:
-        tunnel_opts.append(f"b:{user}:{passwd}")  # Basic Auth
-    tunnel_opts.append("x:https")                  # HTTPS only redirect
-
-    cmd = base_cmd + tunnel_opts
-    RECONNECT_DELAY = 10
+    RECONNECT_DELAY = 30  # avoid Pinggy rate-limit
 
     # Auto-reconnect loop (equivalent to dashboard's: while true; do ssh ...; sleep 10; done)
     while True:
