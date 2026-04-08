@@ -177,25 +177,27 @@ PINGGY_CLI_URL  = (
 def _install_pinggy_cli() -> None:
     """Download Pinggy CLI binary for Linux x86-64 if not already installed."""
     if os.path.exists(PINGGY_CLI_PATH):
-        # Verify it's actually executable
         if os.access(PINGGY_CLI_PATH, os.X_OK):
             return
-        os.remove(PINGGY_CLI_PATH)  # remove corrupt file
+        os.remove(PINGGY_CLI_PATH)  # remove corrupt/non-executable file
 
     _safe_print("[Pinggy] Installing Pinggy CLI (one-time ~5MB)...")
-    # -L follows GitHub release redirects, -f fails on HTTP errors
+    # Try curl first (handles GitHub release redirects better), then wget fallback
     ret = os.system(
-        f"wget -q -L -f -O {PINGGY_CLI_PATH} '{PINGGY_CLI_URL}' "
-        f"&& chmod +x {PINGGY_CLI_PATH} "
-        f"&& echo 'Pinggy CLI OK'"
+        f"(curl -fsSL -o {PINGGY_CLI_PATH} '{PINGGY_CLI_URL}' "
+        f"|| wget -q -L -O {PINGGY_CLI_PATH} '{PINGGY_CLI_URL}') "
+        f"&& chmod +x {PINGGY_CLI_PATH}"
     )
     if ret == 0 and os.path.exists(PINGGY_CLI_PATH) and os.access(PINGGY_CLI_PATH, os.X_OK):
-        _safe_print("[Pinggy] Pinggy CLI installed OK.")
-    else:
-        # Clean up partial download
-        if os.path.exists(PINGGY_CLI_PATH):
-            os.remove(PINGGY_CLI_PATH)
-        _safe_print("[Pinggy] WARNING: CLI install failed - using SSH fallback.")
+        # Sanity-check: verify it's a real binary (not an HTML error page)
+        size = os.path.getsize(PINGGY_CLI_PATH)
+        if size > 100_000:  # should be at least ~100KB
+            _safe_print(f"[Pinggy] Pinggy CLI installed OK ({size // 1024}KB).")
+            return
+        os.remove(PINGGY_CLI_PATH)  # too small = download failed
+    if os.path.exists(PINGGY_CLI_PATH):
+        os.remove(PINGGY_CLI_PATH)
+    _safe_print("[Pinggy] WARNING: CLI install failed - using SSH fallback.")
 
 
 def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
