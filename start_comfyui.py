@@ -82,6 +82,15 @@ COMFY_CMD = (
 ).strip()
 
 # ─────────────────────────────────────────────────────────────
+# SAFE PRINT — must be defined BEFORE stop signals are sent so
+# that existing threads can still call it during shutdown.
+# ─────────────────────────────────────────────────────────────
+def _safe_print(msg: str) -> None:
+    """Strip surrogate characters before printing (avoids Jupyter UnicodeEncodeError)."""
+    clean = str(msg).encode('utf-8', errors='replace').decode('utf-8', errors='replace')
+    print(clean)
+
+# ─────────────────────────────────────────────────────────────
 # STOP OLD THREADS — signal any previous %run to exit cleanly
 # This prevents multiple daemon threads when cell is re-run
 # ─────────────────────────────────────────────────────────────
@@ -111,12 +120,6 @@ _tunnel_proc = None
 # ─────────────────────────────────────────────────────────────
 # HELPERS
 # ─────────────────────────────────────────────────────────────
-
-def _safe_print(msg: str) -> None:
-    """Strip surrogate characters before printing to avoid Jupyter UnicodeEncodeError."""
-    clean = msg.encode('utf-8', errors='replace').decode('utf-8', errors='replace')
-    print(clean)
-
 
 def _is_port_open(port: int, timeout: float = 1.0) -> bool:
     try:
