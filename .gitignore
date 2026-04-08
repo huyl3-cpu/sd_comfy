@@ -1,4 +1,7 @@
-﻿# Backup files
+# Backup files
 *.bak
 requirements_from_nodes.txt
 __pycache__/
+
+# Credentials - never commit
+user.conf
