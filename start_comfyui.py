@@ -70,11 +70,14 @@ _tunnel_proc = None
 # ─────────────────────────────────────────────────────────────
 
 def _safe_print(msg: str) -> None:
-    """Print safely, replacing unencodable characters (avoids Jupyter UnicodeEncodeError)."""
-    try:
-        print(msg)
-    except UnicodeEncodeError:
-        print(msg.encode('utf-8', errors='replace').decode('utf-8'))
+    """Strip surrogate characters before printing to avoid Jupyter UnicodeEncodeError.
+    
+    Surrogates (U+D800-U+DFFF) appear when subprocess reads bytes it can't decode.
+    JSON serialization in Jupyter kernel fails on surrogates, causing the error.
+    We always sanitize before printing, not just on exception.
+    """
+    clean = msg.encode('utf-8', errors='replace').decode('utf-8', errors='replace')
+    print(clean)
 
 def _is_port_open(port: int, timeout: float = 1.0) -> bool:
     try:
@@ -308,30 +311,29 @@ t.start()
 
 # ── Launch ComfyUI ─────────────────────────────────────────────
 os.chdir("/content/")
-print(f"\n🚀 Launching ComfyUI on port {COMFYUI_PORT}...\n")
+_safe_print(f"\n[SD-Comfy] Launching ComfyUI on port {COMFYUI_PORT}...\n")
 
 _comfy_proc = subprocess.Popen(
     f"python {COMFY_CMD}",
     shell=True,
     stdout=subprocess.PIPE,
     stderr=subprocess.STDOUT,
-    text=True,
-    bufsize=1,
-    universal_newlines=True,
+    text=False,      # binary mode to prevent surrogate creation
+    bufsize=0,
 )
 
 _printed_link  = False
 _comfyui_ready = False
 
-for _line in iter(_comfy_proc.stdout.readline, ""):
-    print(_line, end="")
+for _raw in iter(_comfy_proc.stdout.readline, b""):
+    _line = _raw.decode('utf-8', errors='replace')
+    _safe_print(_line.rstrip('\n'))
 
     if not _comfyui_ready and (
         "To see the GUI go to" in _line or "FETCH ComfyRegistry Data" in _line
     ):
         _comfyui_ready = True
 
-    # Print public link once both ComfyUI + tunnel are ready
     if _comfyui_ready and not _printed_link and public_url:
         time.sleep(2)
         _safe_print(f"\n[SD-Comfy] PUBLIC LINK: {public_url}\n")
