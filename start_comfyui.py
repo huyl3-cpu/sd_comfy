@@ -26,12 +26,25 @@ def _cfg(name: str, default):
         pass
     return _builtins.__dict__.get(name, default)
 
-TUNNEL_TYPE   = _cfg("Tunnel_Type",   "Pinggy")                   # "Pinggy" | "Cloudflare"
-PINGGY_TOKEN  = _cfg("Pinggy_token",  "TOKEN@pro.pinggy.io")      # set in cell
-PINGGY_USER   = _cfg("Pinggy_user",   "")                         # Basic auth username
-PINGGY_PASS   = _cfg("Pinggy_pass",   "")                         # Basic auth password
+TUNNEL_TYPE   = _cfg("Tunnel_Type",   "Pinggy")              # "Pinggy" | "Cloudflare"
+PINGGY_TOKEN  = _cfg("Pinggy_token",  "TOKEN@pro.pinggy.io") # set in cell
 COMFYUI_PORT  = _cfg("Comfy_Port",    8188)
-EXTRA_ARGS    = _cfg("Comfy_ExtraArgs", "")                        # optional extra ComfyUI flags
+EXTRA_ARGS    = _cfg("Comfy_ExtraArgs", "")                   # optional extra ComfyUI flags
+
+# ── Pinggy Basic Auth (Password Protect) ──────────────────────
+# These are the credentials users enter in the BROWSER when visiting the Pinggy URL.
+# Do NOT put them in the cell form — store in Colab Secrets instead:
+#   Runtime → Manage secrets → Add: PINGGY_USER / PINGGY_PASS
+# Or set them as hidden variables BEFORE %run in your cell:
+#   Pinggy_user = "your_user" ; Pinggy_pass = "your_pass"
+PINGGY_USER = (
+    os.environ.get("PINGGY_USER")
+    or _cfg("Pinggy_user", "")
+)
+PINGGY_PASS = (
+    os.environ.get("PINGGY_PASS")
+    or _cfg("Pinggy_pass", "")
+)
 
 COMFY_CMD = (
     f"/content/ComfyUI/main.py "
