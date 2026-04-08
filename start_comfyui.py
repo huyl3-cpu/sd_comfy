@@ -226,22 +226,22 @@ def _pinggy_worker(token: str) -> None:
     use_cli = os.path.exists(PINGGY_CLI_PATH)
 
     if use_cli:
-        # Matches Pinggy Dashboard "Pinggy CLI" tab command exactly:
+        # Matches Pinggy Dashboard "Pinggy CLI" tab command:
         # ./pinggy -p 443 -R0:localhost:PORT -o StrictHostKeyChecking=no
-        #          -o ServerAliveInterval=30 -t TOKEN@pro.pinggy.io x:https
+        #          -o ServerAliveInterval=30 TOKEN+force@pro.pinggy.io
+        # No remote args: configure HTTPS/redirect in Pinggy Dashboard
         base = [
             PINGGY_CLI_PATH,
             "-p", "443",
             f"-R0:localhost:{COMFYUI_PORT}",
             "-o", "StrictHostKeyChecking=no",
             "-o", "ServerAliveInterval=30",
-            "-t",       # needed for remote args (x:https, b:user:pass) to be processed
             cli_host,
         ]
     else:
-        # SSH fallback with -tt (force PTY for Pinggy interactive mode)
+        # SSH fallback
         base = [
-            "ssh", "-tt",
+            "ssh",
             "-p", "443",
             f"-R0:127.0.0.1:{COMFYUI_PORT}",
             "-o", "StrictHostKeyChecking=no",
@@ -250,12 +250,9 @@ def _pinggy_worker(token: str) -> None:
             cli_host,
         ]
 
-    # Remote options (x:https = redirect HTTP to HTTPS)
-    # Password protection: configure in Pinggy Dashboard -> Token settings
-    # Do NOT add b:user:pass here — causes 403 if not matching dashboard config
-    remote_opts = ["x:https"]
-
-    cmd = base + remote_opts
+    # No remote args - configure HTTPS/Password in Pinggy Dashboard
+    # Passing x:https or b:user:pass here causes 403 on pro tokens
+    cmd = base
     # CLI has built-in autoreconnect; outer loop is backup for full crashes
     # Use longer delay for CLI (120s) so CLI internal reconnect handles most cases
     RECONNECT_DELAY = 120 if use_cli else 30
