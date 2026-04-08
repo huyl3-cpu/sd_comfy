@@ -28,6 +28,8 @@ def _cfg(name: str, default):
 
 TUNNEL_TYPE   = _cfg("Tunnel_Type",   "Pinggy")                   # "Pinggy" | "Cloudflare"
 PINGGY_TOKEN  = _cfg("Pinggy_token",  "TOKEN@pro.pinggy.io")      # set in cell
+PINGGY_USER   = _cfg("Pinggy_user",   "")                         # Basic auth username
+PINGGY_PASS   = _cfg("Pinggy_pass",   "")                         # Basic auth password
 COMFYUI_PORT  = _cfg("Comfy_Port",    8188)
 EXTRA_ARGS    = _cfg("Comfy_ExtraArgs", "")                        # optional extra ComfyUI flags
 
@@ -109,78 +111,107 @@ def _print_url_banner(url: str) -> None:
 # TUNNEL: PINGGY
 # ─────────────────────────────────────────────────────────────
 
-def _pinggy_worker(token: str) -> None:
-    """Wait for ComfyUI, then open Pinggy SSH reverse tunnel."""
+def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
+    """Wait for ComfyUI, then open Pinggy SSH reverse tunnel.
+    
+    Matches Pinggy dashboard recommended command (Linux):
+      while true; do
+        ssh -p 443 -R0:127.0.0.1:PORT -o StrictHostKeyChecking=no \
+            -o ServerAliveInterval=30 -t TOKEN@pro.pinggy.io \
+            "b:USER:PASS" s:https ;
+        sleep 10; done
+    """
     global public_url, _tunnel_proc
 
     _wait_comfyui(COMFYUI_PORT)
 
     host_info = token.split("@")[1] if "@" in token else token
-    print(f"🔗 Starting Pinggy tunnel → {host_info}")
+    print(f"\ud83d\udd17 Starting Pinggy tunnel \u2192 {host_info}")
+    if user:
+        print(f"   🔒 Password Protect: ON  (user: {user})")
+    print(f"   🔐 HTTPS only: ON")
 
-    # SSH command matching Pinggy dashboard recommendation:
-    #   ssh -p 443 -R0:localhost:<PORT> -o StrictHostKeyChecking=no
-    #       -o ServerAliveInterval=30  TOKEN@pro.pinggy.io
+    # Build SSH command exactly as Pinggy dashboard recommends:
+    # ssh -p 443 -R0:127.0.0.1:8188 -o StrictHostKeyChecking=no
+    #     -o ServerAliveInterval=30 -t TOKEN@pro.pinggy.io
+    #     "b:USER:PASS" s:https
     #
-    # Security notes (configure in Pinggy Dashboard → Advanced):
-    #   • HTTPS only     : ON  → forces HTTPS, no unencrypted HTTP
-    #   • Password Protect: ON  → basic auth before anyone can reach ComfyUI
-    #   • Keep Alive     : ON  → stable connection
-    #   • Web Debugger   : OFF → avoid traffic inspection
-    cmd = [
-        "ssh", "-T",
+    # Notes:
+    #   -tt          : force pseudo-terminal (needed in Colab subprocess with no local TTY)
+    #   127.0.0.1    : Pinggy dashboard uses 127.0.0.1, not 0.0.0.0
+    #   b:user:pass  : Basic Auth (Password Protect in dashboard)
+    #   s:https      : HTTPS only (dashboard setting)
+    base_cmd = [
+        "ssh", "-tt",
         "-p", "443",
-        f"-R0:localhost:{COMFYUI_PORT}",
+        f"-R0:127.0.0.1:{COMFYUI_PORT}",
         "-o", "StrictHostKeyChecking=no",
         "-o", "ServerAliveInterval=30",
-        "-o", "ServerAliveCountMax=3",
-        "-o", "ConnectTimeout=30",
-        "-o", "ExitOnForwardFailure=yes",
         token.strip(),
     ]
 
-    try:
-        _tunnel_proc = subprocess.Popen(
-            cmd,
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1,
-        )
-    except Exception as e:
-        print(f"❌ Failed to start Pinggy: {e}")
-        return
+    # Append Pinggy tunnel options (passed as SSH remote command args)
+    tunnel_opts = []
+    if user and passwd:
+        tunnel_opts.append(f"b:{user}:{passwd}")  # Password Protect
+    tunnel_opts.append("s:https")                  # HTTPS only
 
-    for raw_line in iter(_tunnel_proc.stdout.readline, ""):
-        line = raw_line.strip()
+    cmd = base_cmd + tunnel_opts
+    RECONNECT_DELAY = 10
 
-        # Skip bandwidth stats (noise)
-        if "RB:" in line and "SB:" in line:
+    # Auto-reconnect loop (equivalent to dashboard's: while true; do ssh ...; sleep 10; done)
+    while True:
+        try:
+            _tunnel_proc = subprocess.Popen(
+                cmd,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+            )
+        except Exception as e:
+            print(f"\u274c Failed to start Pinggy: {e}")
+            time.sleep(RECONNECT_DELAY)
             continue
 
-        if line:
-            # Redact token from console output
-            safe = line.replace(token.split("@")[0], "[TOKEN]") if "@" in token else line
-            print(f"🌐 {safe}")
+        for raw_line in iter(_tunnel_proc.stdout.readline, ""):
+            line = raw_line.strip()
 
-        url = _extract_pinggy_url(line)
-        if url and not public_url:
-            public_url = url
-            _print_url_banner(url)
-            # Expose to IPython namespace so cell can read it
-            try:
-                from IPython import get_ipython
-                ip = get_ipython()
-                if ip:
-                    ip.user_ns["public_url"] = url
-            except Exception:
-                pass
-            break   # URL captured; keep tunnel alive via process (not this loop)
+            # Skip bandwidth stats (noise)
+            if "RB:" in line and "SB:" in line:
+                continue
 
-    # Keep thread alive while tunnel process runs
-    if _tunnel_proc:
-        _tunnel_proc.wait()
+            if line:
+                # Redact credentials from console output
+                safe = line
+                if passwd:
+                    safe = safe.replace(passwd, "[PASS]")
+                if "@" in token:
+                    safe = safe.replace(token.split("@")[0], "[TOKEN]")
+                print(f"\ud83c\udf10 {safe}")
+
+            url = _extract_pinggy_url(line)
+            if url and not public_url:
+                public_url = url
+                _print_url_banner(url)
+                # Expose to IPython namespace
+                try:
+                    from IPython import get_ipython
+                    ip = get_ipython()
+                    if ip:
+                        ip.user_ns["public_url"] = url
+                except Exception:
+                    pass
+
+        # Process ended — reconnect after delay
+        ret = _tunnel_proc.poll()
+        if ret is not None and ret != 0:
+            print(f"\u26a0 Tunnel disconnected (exit {ret}), reconnecting in {RECONNECT_DELAY}s...")
+        else:
+            print(f"\u26a0 Tunnel ended, reconnecting in {RECONNECT_DELAY}s...")
+        public_url = None  # reset so URL banner shows again after reconnect
+        time.sleep(RECONNECT_DELAY)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -243,7 +274,11 @@ print("=" * 62)
 if TUNNEL_TYPE == "Pinggy":
     if "TOKEN@" in PINGGY_TOKEN or not PINGGY_TOKEN.strip():
         raise SystemExit("❌ Set Pinggy_token in the cell before running!")
-    t = threading.Thread(target=_pinggy_worker, args=(PINGGY_TOKEN,), daemon=True)
+    t = threading.Thread(
+        target=_pinggy_worker,
+        args=(PINGGY_TOKEN, PINGGY_USER, PINGGY_PASS),
+        daemon=True
+    )
 else:
     t = threading.Thread(target=_cloudflare_worker, daemon=True)
 
