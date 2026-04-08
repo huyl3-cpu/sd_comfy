@@ -225,19 +225,25 @@ def _pinggy_worker(token: str) -> None:
     # Prefer Pinggy CLI; fall back to SSH if CLI install failed
     use_cli = os.path.exists(PINGGY_CLI_PATH)
 
+    # Detect token type from host: free.pinggy.io vs pro.pinggy.io
+    is_pro = "pro.pinggy.io" in token
+
     if use_cli:
-        # Matches Pinggy Dashboard "Pinggy CLI" tab command:
-        # ./pinggy -p 443 -R0:localhost:PORT -o StrictHostKeyChecking=no
-        #          -o ServerAliveInterval=30 TOKEN+force@pro.pinggy.io
-        # No remote args: configure HTTPS/redirect in Pinggy Dashboard
+        # Free:  ./pinggy -p 443 -R0:localhost:8188 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 TOKEN@free.pinggy.io
+        # Pro:   ./pinggy -p 443 -R0:localhost:8188 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -t TOKEN@pro.pinggy.io x:https
         base = [
             PINGGY_CLI_PATH,
             "-p", "443",
             f"-R0:localhost:{COMFYUI_PORT}",
             "-o", "StrictHostKeyChecking=no",
             "-o", "ServerAliveInterval=30",
-            cli_host,
         ]
+        if is_pro:
+            base.append("-t")   # -t needed for remote args on pro
+        base.append(cli_host)
+        if is_pro:
+            base.append("x:https")
+        cmd = base
     else:
         # SSH fallback
         base = [
@@ -247,12 +253,14 @@ def _pinggy_worker(token: str) -> None:
             "-o", "StrictHostKeyChecking=no",
             "-o", "ServerAliveInterval=30",
             "-o", "ServerAliveCountMax=3",
-            cli_host,
         ]
+        if is_pro:
+            base.append("-t")
+        base.append(cli_host)
+        if is_pro:
+            base.append("x:https")
+        cmd = base
 
-    # No remote args - configure HTTPS/Password in Pinggy Dashboard
-    # Passing x:https or b:user:pass here causes 403 on pro tokens
-    cmd = base
     # CLI has built-in autoreconnect; outer loop is backup for full crashes
     # Use longer delay for CLI (120s) so CLI internal reconnect handles most cases
     RECONNECT_DELAY = 120 if use_cli else 30
