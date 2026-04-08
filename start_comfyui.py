@@ -232,12 +232,16 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
     use_cli = os.path.exists(PINGGY_CLI_PATH)
 
     if use_cli:
-        # Pinggy CLI: no PTY issues, supports all remote opts, has built-in reconnect
-        # Do NOT pass -o StrictHostKeyChecking=no here (SSH-only option, crashes CLI)
+        # Matches Pinggy Dashboard "Pinggy CLI" tab command exactly:
+        # ./pinggy -p 443 -R0:localhost:PORT -o StrictHostKeyChecking=no
+        #          -o ServerAliveInterval=30 -t TOKEN@pro.pinggy.io x:https
         base = [
             PINGGY_CLI_PATH,
             "-p", "443",
-            f"-R0:127.0.0.1:{COMFYUI_PORT}",
+            f"-R0:localhost:{COMFYUI_PORT}",
+            "-o", "StrictHostKeyChecking=no",
+            "-o", "ServerAliveInterval=30",
+            "-t",       # needed for remote args (x:https, b:user:pass) to be processed
             cli_host,
         ]
     else:
