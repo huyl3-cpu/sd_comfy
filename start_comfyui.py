@@ -11,9 +11,15 @@ Usage in Colab cell:
 """
 
 # ─────────────────────────────────────────────────────────────
-# CONFIGURATION — override these in the Colab cell BEFORE %run
+# IMPORTS (must be first)
 # ─────────────────────────────────────────────────────────────
 import builtins as _builtins
+import os
+import re
+import socket
+import subprocess
+import threading
+import time
 
 def _cfg(name: str, default):
     """Read variable from IPython/caller namespace, fallback to default."""
@@ -53,16 +59,8 @@ COMFY_CMD = (
 ).strip()
 
 # ─────────────────────────────────────────────────────────────
-# IMPORTS
-# ─────────────────────────────────────────────────────────────
-import os
-import re
-import socket
-import subprocess
-import threading
-import time
-
 # Shared state
+# ─────────────────────────────────────────────────────────────
 public_url   = None
 _tunnel_proc = None
 
