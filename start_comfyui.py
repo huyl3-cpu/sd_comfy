@@ -18,8 +18,30 @@ import os
 import re
 import socket
 import subprocess
+import sys
 import threading
 import time
+
+# ─────────────────────────────────────────────────────────────
+# SANITIZE sys.stdout — intercept ALL output, strip surrogates
+# This MUST run before any print() to prevent Jupyter
+# UnicodeEncodeError from surrogate characters in subprocess output
+# ─────────────────────────────────────────────────────────────
+class _SanitizingStream:
+    """Wraps stdout to strip UTF-8 surrogate chars before Jupyter serializes them."""
+    def __init__(self, wrapped):
+        self._w = wrapped
+    def write(self, s: str) -> int:
+        if isinstance(s, str) and s:
+            s = s.encode('utf-8', errors='replace').decode('utf-8', errors='replace')
+        return self._w.write(s)
+    def flush(self):
+        self._w.flush()
+    def __getattr__(self, name):
+        return getattr(self._w, name)
+
+_orig_stdout = sys.stdout
+sys.stdout = _SanitizingStream(sys.stdout)
 
 def _cfg(name: str, default):
     """Read variable from IPython/caller namespace, fallback to default."""
@@ -148,31 +170,19 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
         _safe_print(f"[Pinggy] Password Protect: ON (user: {user})")
     _safe_print("[Pinggy] HTTPS only: ON | Force reconnect: ON")
 
-    # Build SSH command exactly as Pinggy dashboard recommends:
-    # ssh -p 443 -R0:127.0.0.1:8188 -o StrictHostKeyChecking=no
-    #     -o ServerAliveInterval=30 -t TOKEN@pro.pinggy.io
-    #     "b:USER:PASS" s:https
-    #
-    # IMPORTANT: To avoid "tunnel already active" error,
-    # enable Force in Pinggy Dashboard -> Advanced -> Force: ON
-    base_cmd = [
-        "ssh", "-t",   # single -t as per Pinggy dashboard (not -tt)
+    # Simple SSH command — all security settings (HTTPS only, Password Protect,
+    # Force, Keep Alive) are configured in the Pinggy Dashboard.
+    # Removing -t flag to prevent SSH from outputting binary terminal escape
+    # sequences that cause Jupyter UnicodeEncodeError.
+    cmd = [
+        "ssh", "-T",   # no PTY allocation (-T = explicitly disable)
         "-p", "443",
         f"-R0:127.0.0.1:{COMFYUI_PORT}",
         "-o", "StrictHostKeyChecking=no",
         "-o", "ServerAliveInterval=30",
+        "-o", "ServerAliveCountMax=3",
         token.strip(),
     ]
-
-    # Pinggy tunnel options (SSH remote command args)
-    tunnel_opts = []
-    if user and passwd:
-        tunnel_opts.append(f"b:{user}:{passwd}")  # Password Protect
-    tunnel_opts.append("s:https")                  # HTTPS only
-    # NOTE: Force option must be enabled via Pinggy Dashboard
-    # Dashboard -> Advanced -> Force: ON
-
-    cmd = base_cmd + tunnel_opts
     RECONNECT_DELAY = 10
 
     # Auto-reconnect loop (equivalent to dashboard's: while true; do ssh ...; sleep 10; done)
