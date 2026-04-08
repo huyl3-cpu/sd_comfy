@@ -200,8 +200,8 @@ def _pinggy_worker(token: str) -> None:
     """Wait for ComfyUI then start Pinggy tunnel.
 
     Uses Pinggy CLI (preferred) or SSH (fallback).
-    TOKEN+force@pro.pinggy.io forces-close any existing tunnel on connect.
-    Remote opt x:https is passed to enable HTTPS-only redirect.
+    CLI: plain token (CLI handles reconnect natively, +force causes warning).
+    SSH: TOKEN+force to force-close existing tunnels.
     """
     global public_url, _tunnel_proc
 
@@ -210,17 +210,14 @@ def _pinggy_worker(token: str) -> None:
 
     host_info = token.split("@")[1] if "@" in token else token
     _safe_print(f"[Pinggy] Starting tunnel -> {host_info}")
-    _safe_print("[Pinggy] HTTPS only: ON | Force: ON")
 
-    # Build TOKEN+force@pro.pinggy.io
-    # 'force' is a USERNAME keyword per Pinggy docs:
-    #   https://pinggy.io/docs/usages/ (section 4)
-    # Syntax: TOKEN+force@pro.pinggy.io
     parts = token.strip().split("@", 1)
-    if len(parts) == 2 and "+force" not in parts[0]:
-        cli_host = f"{parts[0]}+force@{parts[1]}"
-    else:
-        cli_host = token.strip()
+    # CLI: plain token (no +force — causes 'Unknown extended option' warning)
+    cli_host  = token.strip()
+    # SSH: TOKEN+force to force-close existing tunnels
+    ssh_host  = (f"{parts[0]}+force@{parts[1]}"
+                 if len(parts) == 2 and "+force" not in parts[0]
+                 else token.strip())
 
     # Prefer Pinggy CLI; fall back to SSH if CLI install failed
     use_cli = os.path.exists(PINGGY_CLI_PATH)
@@ -240,12 +237,12 @@ def _pinggy_worker(token: str) -> None:
         ]
         if is_pro:
             base.append("-t")   # -t needed for remote args on pro
-        base.append(cli_host)
+        base.append(cli_host)   # plain token, no +force
         if is_pro:
             base.append("x:https")
         cmd = base
     else:
-        # SSH fallback
+        # SSH fallback with +force in username
         base = [
             "ssh",
             "-p", "443",
@@ -256,16 +253,26 @@ def _pinggy_worker(token: str) -> None:
         ]
         if is_pro:
             base.append("-t")
-        base.append(cli_host)
+        base.append(ssh_host)   # +force to terminate existing tunnel
         if is_pro:
             base.append("x:https")
         cmd = base
 
-    # CLI has built-in autoreconnect; outer loop is backup for full crashes
-    # Use longer delay for CLI (120s) so CLI internal reconnect handles most cases
+    # CLI has built-in autoreconnect; outer loop is only a crash-recovery backup
     RECONNECT_DELAY = 120 if use_cli else 30
 
-    _safe_print(f"[Pinggy] Using {'CLI (built-in reconnect)' if use_cli else 'SSH fallback'}")
+    _safe_print(f"[Pinggy] Using {'CLI' if use_cli else 'SSH fallback'} | {'Pro' if is_pro else 'Free'} token")
+
+    # Stop watcher: forcefully kill tunnel process when stop_event fires.
+    # This unblocks readline() which would otherwise block indefinitely.
+    def _stop_watcher():
+        _stop_event.wait()          # blocks until stop_event.set() is called
+        if _tunnel_proc:
+            try:
+                _tunnel_proc.terminate()
+            except Exception:
+                pass
+    threading.Thread(target=_stop_watcher, daemon=True).start()
 
     while not _stop_event.is_set():
         try:
