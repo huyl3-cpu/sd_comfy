@@ -43,6 +43,7 @@ class _SanitizingStream:
 _orig_stdout = sys.stdout
 sys.stdout = _SanitizingStream(sys.stdout)
 
+
 def _cfg(name: str, default):
     """Read variable from IPython/caller namespace, fallback to default."""
     try:
@@ -53,6 +54,7 @@ def _cfg(name: str, default):
     except Exception:
         pass
     return _builtins.__dict__.get(name, default)
+
 
 TUNNEL_TYPE   = _cfg("Tunnel_Type",   "Pinggy")              # "Pinggy" | "Cloudflare"
 PINGGY_TOKEN  = _cfg("Pinggy_token",  "TOKEN@pro.pinggy.io") # set in cell
@@ -92,14 +94,10 @@ _tunnel_proc = None
 # ─────────────────────────────────────────────────────────────
 
 def _safe_print(msg: str) -> None:
-    """Strip surrogate characters before printing to avoid Jupyter UnicodeEncodeError.
-    
-    Surrogates (U+D800-U+DFFF) appear when subprocess reads bytes it can't decode.
-    JSON serialization in Jupyter kernel fails on surrogates, causing the error.
-    We always sanitize before printing, not just on exception.
-    """
+    """Strip surrogate characters before printing to avoid Jupyter UnicodeEncodeError."""
     clean = msg.encode('utf-8', errors='replace').decode('utf-8', errors='replace')
     print(clean)
+
 
 def _is_port_open(port: int, timeout: float = 1.0) -> bool:
     try:
@@ -150,56 +148,101 @@ def _print_url_banner(url: str) -> None:
 # TUNNEL: PINGGY
 # ─────────────────────────────────────────────────────────────
 
+PINGGY_CLI_PATH = "/usr/local/bin/pinggy"
+PINGGY_CLI_URL  = (
+    "https://github.com/Pinggy-io/cli-js/releases/download/v0.3.9/pinggy-linux-x64"
+)
+
+
+def _install_pinggy_cli() -> None:
+    """Download Pinggy CLI binary for Linux x86-64 if not already installed.
+
+    Pinggy CLI advantages over raw SSH:
+      - No PTY/terminal encoding issues in Colab subprocesses
+      - force, x:https, b:user:pass all work cleanly without -t flag
+      - Built-in autoreconnect support
+      - Clean text output, no binary escape sequences
+
+    CLI docs: https://pinggy.io/docs/cli/
+    """
+    if os.path.exists(PINGGY_CLI_PATH):
+        return
+    _safe_print("[Pinggy] Installing Pinggy CLI (one-time ~5MB)...")
+    ret = os.system(
+        f"wget -q -O {PINGGY_CLI_PATH} '{PINGGY_CLI_URL}' "
+        f"&& chmod +x {PINGGY_CLI_PATH}"
+    )
+    if ret == 0:
+        _safe_print("[Pinggy] Pinggy CLI installed OK.")
+    else:
+        _safe_print("[Pinggy] WARNING: CLI install failed, will fall back to SSH.")
+
+
 def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
-    """Wait for ComfyUI, then open Pinggy SSH reverse tunnel.
-    
-    Matches Pinggy dashboard recommended command (Linux):
-      while true; do
-        ssh -p 443 -R0:127.0.0.1:PORT -o StrictHostKeyChecking=no \
-            -o ServerAliveInterval=30 -t TOKEN@pro.pinggy.io \
-            "b:USER:PASS" s:https ;
-        sleep 10; done
+    """Wait for ComfyUI then start Pinggy tunnel.
+
+    Uses Pinggy CLI (preferred) or SSH (fallback).
+    TOKEN+force@pro.pinggy.io forces-close any existing tunnel on connect.
+    Remote opts x:https and b:user:pass are passed as CLI remote args.
     """
     global public_url, _tunnel_proc
 
     _wait_comfyui(COMFYUI_PORT)
+    _install_pinggy_cli()
 
     host_info = token.split("@")[1] if "@" in token else token
     _safe_print(f"[Pinggy] Starting tunnel -> {host_info}")
     if user:
         _safe_print(f"[Pinggy] Password Protect: ON (user: {user})")
-    _safe_print("[Pinggy] HTTPS only: ON | Force reconnect: ON")
+    _safe_print("[Pinggy] HTTPS only: ON | Force: ON")
 
-    # Architecture:
-    #   - 'force' -> USERNAME keyword (TOKEN+force@host): closes existing tunnel on connect
-    #   - '-tt'   -> Force PTY: Pinggy runs in interactive mode, SSH stays alive indefinitely
-    #              (Without remote command args after host, Pinggy does NOT start a command
-    #              session, so SSH + Pinggy stay connected as long as the network is up)
-    #   - NO remote args: x:https and b:user:pass go in Pinggy Dashboard settings instead
-    #
-    # Configure in Pinggy Dashboard: https://dashboard.pinggy.io
-    #   -> Token settings -> HTTPS Only, Password Protect, Force
-
-    # Build token+force username
+    # Build TOKEN+force@pro.pinggy.io
+    # 'force' is a USERNAME keyword per Pinggy docs:
+    #   https://pinggy.io/docs/usages/ (section 4)
+    # Syntax: TOKEN+force@pro.pinggy.io
     parts = token.strip().split("@", 1)
     if len(parts) == 2 and "+force" not in parts[0]:
-        ssh_host = f"{parts[0]}+force@{parts[1]}"
+        cli_host = f"{parts[0]}+force@{parts[1]}"
     else:
-        ssh_host = token.strip()
+        cli_host = token.strip()
 
-    cmd = [
-        "ssh", "-tt",  # force PTY -> Pinggy interactive mode -> SSH stays alive
-        "-p", "443",
-        f"-R0:127.0.0.1:{COMFYUI_PORT}",
-        "-o", "StrictHostKeyChecking=no",
-        "-o", "ServerAliveInterval=30",
-        "-o", "ServerAliveCountMax=3",
-        ssh_host,
-        # No remote command args: configure HTTPS/Password in Pinggy Dashboard
-    ]
-    RECONNECT_DELAY = 30  # avoid Pinggy rate-limit
+    # Prefer Pinggy CLI; fall back to SSH if CLI install failed
+    use_cli = os.path.exists(PINGGY_CLI_PATH)
 
-    # Auto-reconnect loop (equivalent to dashboard's: while true; do ssh ...; sleep 10; done)
+    if use_cli:
+        # Pinggy CLI: clean binary, no PTY issues, supports all remote opts
+        # https://pinggy.io/docs/cli/
+        base = [
+            PINGGY_CLI_PATH,
+            "-p", "443",
+            f"-R0:127.0.0.1:{COMFYUI_PORT}",
+            "-o", "StrictHostKeyChecking=no",
+            cli_host,
+        ]
+    else:
+        # SSH fallback with -tt (force PTY for Pinggy interactive mode)
+        base = [
+            "ssh", "-tt",
+            "-p", "443",
+            f"-R0:127.0.0.1:{COMFYUI_PORT}",
+            "-o", "StrictHostKeyChecking=no",
+            "-o", "ServerAliveInterval=30",
+            "-o", "ServerAliveCountMax=3",
+            cli_host,
+        ]
+
+    # Remote options passed after hostname:
+    #   x:https      -> HTTPS only redirect
+    #   b:user:pass  -> Basic Auth (browser password prompt)
+    remote_opts = ["x:https"]
+    if user and passwd:
+        remote_opts.append(f"b:{user}:{passwd}")
+
+    cmd = base + remote_opts
+    RECONNECT_DELAY = 30  # longer delay to avoid Pinggy rate-limit
+
+    _safe_print(f"[Pinggy] Using {'CLI' if use_cli else 'SSH fallback'}")
+
     while True:
         try:
             _tunnel_proc = subprocess.Popen(
@@ -207,26 +250,22 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
                 stdin=subprocess.DEVNULL,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
-                # Use binary mode + manual decode to avoid UnicodeEncodeError
-                # from SSH outputting non-UTF8 bytes (terminal escape sequences)
-                text=False,
+                text=False,   # binary mode → manual decode → no surrogate issues
                 bufsize=0,
             )
         except Exception as e:
-            _safe_print(f"[Pinggy] Failed to start: {e}")
+            _safe_print(f"[Pinggy] Failed to start tunnel: {e}")
             time.sleep(RECONNECT_DELAY)
             continue
 
         for raw_bytes in iter(_tunnel_proc.stdout.readline, b""):
-            # Decode with replace to safely handle any non-UTF8 bytes
             line = raw_bytes.decode('utf-8', errors='replace').strip()
 
-            # Skip bandwidth stats (noise)
+            # Skip noise (bandwidth stats lines)
             if "RB:" in line and "SB:" in line:
                 continue
 
             if line:
-                # Redact credentials from console output
                 safe = line
                 if passwd:
                     safe = safe.replace(passwd, "[PASS]")
@@ -234,16 +273,14 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
                     safe = safe.replace(token.split("@")[0], "[TOKEN]")
                 _safe_print(f"[Pinggy] {safe}")
 
-            # Check for "already active" error
             if "already active" in line:
-                _safe_print("[Pinggy] Tunnel conflict detected. 'force' will apply on reconnect.")
-                _safe_print("[Pinggy] Or manually terminate at: https://dashboard.pinggy.io/activetunnels")
+                _safe_print("[Pinggy] Conflict - 'force' will close it on reconnect.")
+                _safe_print("[Pinggy] Or terminate at: https://dashboard.pinggy.io/activetunnels")
 
             url = _extract_pinggy_url(line)
             if url and not public_url:
                 public_url = url
                 _print_url_banner(url)
-                # Expose to IPython namespace
                 try:
                     from IPython import get_ipython
                     ip = get_ipython()
@@ -252,14 +289,14 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
                 except Exception:
                     pass
 
-        # Process ended -- reconnect after delay
+        # Process ended — reconnect after delay
         ret = _tunnel_proc.poll() if _tunnel_proc else -1
         if ret is not None and ret != 0:
-            _safe_print(f"[Pinggy] Tunnel disconnected (exit {ret}), reconnecting in {RECONNECT_DELAY}s...")
+            _safe_print(f"[Pinggy] Disconnected (exit {ret}), reconnecting in {RECONNECT_DELAY}s...")
         else:
-            _safe_print(f"[Pinggy] Tunnel ended, reconnecting in {RECONNECT_DELAY}s...")
+            _safe_print(f"[Pinggy] Ended, reconnecting in {RECONNECT_DELAY}s...")
         public_url = None
-        _tunnel_proc = None  # reset before next iteration
+        _tunnel_proc = None
         time.sleep(RECONNECT_DELAY)
 
 
@@ -296,7 +333,6 @@ def _cloudflare_worker() -> None:
         m = re.search(r"https://[^\s]+\.trycloudflare\.com", line)
         if m and not public_url:
             public_url = m.group()
-            # Expose to IPython
             try:
                 from IPython import get_ipython
                 ip = get_ipython()
