@@ -150,13 +150,10 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
     #     -o ServerAliveInterval=30 -t TOKEN@pro.pinggy.io
     #     "b:USER:PASS" s:https
     #
-    # Notes:
-    #   -tt          : force pseudo-terminal (needed in Colab subprocess with no local TTY)
-    #   127.0.0.1    : Pinggy dashboard uses 127.0.0.1, not 0.0.0.0
-    #   b:user:pass  : Basic Auth (Password Protect in dashboard)
-    #   s:https      : HTTPS only (dashboard setting)
+    # IMPORTANT: To avoid "tunnel already active" error,
+    # enable Force in Pinggy Dashboard -> Advanced -> Force: ON
     base_cmd = [
-        "ssh", "-tt",
+        "ssh", "-t",   # single -t as per Pinggy dashboard (not -tt)
         "-p", "443",
         f"-R0:127.0.0.1:{COMFYUI_PORT}",
         "-o", "StrictHostKeyChecking=no",
@@ -164,12 +161,13 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
         token.strip(),
     ]
 
-    # Append Pinggy tunnel options (passed as SSH remote command args)
+    # Pinggy tunnel options (SSH remote command args)
     tunnel_opts = []
     if user and passwd:
         tunnel_opts.append(f"b:{user}:{passwd}")  # Password Protect
     tunnel_opts.append("s:https")                  # HTTPS only
-    tunnel_opts.append("f")                        # Force: close existing tunnel with same token
+    # NOTE: Force option must be enabled via Pinggy Dashboard
+    # Dashboard -> Advanced -> Force: ON
 
     cmd = base_cmd + tunnel_opts
     RECONNECT_DELAY = 10
@@ -182,16 +180,19 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
                 stdin=subprocess.DEVNULL,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
-                text=True,
-                bufsize=1,
+                # Use binary mode + manual decode to avoid UnicodeEncodeError
+                # from SSH outputting non-UTF8 bytes (terminal escape sequences)
+                text=False,
+                bufsize=0,
             )
         except Exception as e:
-            print(f"\u274c Failed to start Pinggy: {e}")
+            _safe_print(f"[Pinggy] Failed to start: {e}")
             time.sleep(RECONNECT_DELAY)
             continue
 
-        for raw_line in iter(_tunnel_proc.stdout.readline, ""):
-            line = raw_line.strip()
+        for raw_bytes in iter(_tunnel_proc.stdout.readline, b""):
+            # Decode with replace to safely handle any non-UTF8 bytes
+            line = raw_bytes.decode('utf-8', errors='replace').strip()
 
             # Skip bandwidth stats (noise)
             if "RB:" in line and "SB:" in line:
@@ -205,6 +206,12 @@ def _pinggy_worker(token: str, user: str = "", passwd: str = "") -> None:
                 if "@" in token:
                     safe = safe.replace(token.split("@")[0], "[TOKEN]")
                 _safe_print(f"[Pinggy] {safe}")
+
+            # Check for "already active" error and warn user
+            if "already active" in line:
+                _safe_print("[Pinggy] ERROR: Another tunnel with this token is running.")
+                _safe_print("[Pinggy] FIX: Go to Pinggy Dashboard -> Advanced -> Force: ON")
+                _safe_print("[Pinggy] Then save and restart this cell.")
 
             url = _extract_pinggy_url(line)
             if url and not public_url:
