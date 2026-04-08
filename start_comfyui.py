@@ -410,13 +410,17 @@ else:
 
 t.start()
 
-# ── Launch ComfyUI ─────────────────────────────────────────────
+# ── Cleanup previous ComfyUI instance ─────────────────────────
+# Old ComfyUI subprocess survives kernel restart and holds port + db lock
+_safe_print(f"[SD-Comfy] Stopping any existing ComfyUI process...")
+os.system("pkill -f 'ComfyUI/main.py' 2>/dev/null || true")
+os.system(f"fuser -k {COMFYUI_PORT}/tcp 2>/dev/null || true")
+# Remove SQLite WAL/SHM lock files (prevents 'cannot acquire lock' error)
+os.system("rm -f /content/ComfyUI/user/comfyui.db-wal "
+          "/content/ComfyUI/user/comfyui.db-shm 2>/dev/null || true")
+time.sleep(2)  # wait for port to fully release
+
 os.chdir("/content/")
-
-# Kill any process still holding COMFYUI_PORT (survives kernel restart)
-_safe_print(f"[SD-Comfy] Checking port {COMFYUI_PORT}...")
-os.system(f"fuser -k {COMFYUI_PORT}/tcp 2>/dev/null; sleep 1")
-
 _safe_print(f"\n[SD-Comfy] Launching ComfyUI on port {COMFYUI_PORT}...\n")
 
 _comfy_proc = subprocess.Popen(
