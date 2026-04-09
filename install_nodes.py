@@ -48,6 +48,7 @@ CUSTOM_NODES: List[Tuple[str, str, bool]] = [
     ("https://github.com/Suzie1/ComfyUI_Comfyroll_CustomNodes.git", "ComfyUI_Comfyroll_CustomNodes", True),
     ("https://github.com/hassan-sd/comfyui-image-prompt-loader.git", "comfyui-image-prompt-loader", True),
     ("https://github.com/melMass/comfy_mtb.git", "comfy_mtb", True),
+    ("https://github.com/jtydhr88/ComfyUI-qwenmultiangle.git", "ComfyUI-qwenmultiangle", False),
 ]
 
 # Model directories to create
