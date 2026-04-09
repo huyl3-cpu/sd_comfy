@@ -79,7 +79,8 @@ PINGGY_PASS = ""
 COMFY_CMD = (
     f"/content/ComfyUI/main.py "
     f"--listen 0.0.0.0 --port {COMFYUI_PORT} "
-    f"--disable-smart-memory --reserve-vram 1 --gpu-only {EXTRA_ARGS}"
+    f"--disable-smart-memory --reserve-vram 1 --gpu-only "
+    f"--enable-compress-response-body {EXTRA_ARGS}"
 ).strip()
 
 # ─────────────────────────────────────────────────────────────
