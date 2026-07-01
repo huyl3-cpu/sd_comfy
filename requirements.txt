@@ -73,7 +73,9 @@ colour-science
 mediapipe
 
 # ONNX Runtime
-onnxruntime-gpu
+# Pin về 1.22.0 (bản CUDA 12 cuối). Từ 1.23.0 onnxruntime-gpu build cho CUDA 13
+# và yêu cầu libcudart.so.13, trong khi môi trường dùng CUDA 12 (torch 2.10 cu12x, cupy-cuda12x).
+onnxruntime-gpu==1.22.0
 onnx
 
 # Audio Processing

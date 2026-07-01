@@ -153,7 +153,7 @@ def main():
     # print(f"\n📦 Installing pip packages from {len(all_requirements)} requirement files (Global Batch)...")
     
     extra_pkgs = [
-        "packaging", "ninja", "rembg", "onnxruntime-gpu", "insightface",
+        "packaging", "ninja", "rembg", "onnxruntime-gpu==1.22.0", "insightface",
         "ffmpeg-python", "segment-anything", "pytube", "soundfile", "librosa",
         "numba", "diffusers", "transformers", "matplotlib", "scikit-learn",
         "scipy", "pandas", "opencv-python-headless", "imageio", "imageio-ffmpeg",
@@ -194,8 +194,9 @@ def main():
     print("\n🔧 Fixing specific dependencies...")
     
     # Force clean install of onnxruntime-gpu
+    # Pin 1.22.0 (bản CUDA 12 cuối). Từ 1.23.0 build cho CUDA 13 -> lỗi libcudart.so.13
     run("uv pip uninstall onnxruntime onnxruntime-gpu --system", check=False, quiet=True)
-    run("uv pip install onnxruntime-gpu --system", check=False, quiet=True)
+    run("uv pip install onnxruntime-gpu==1.22.0 --system", check=False, quiet=True)
 
     fix_cmds = [
         ("protobuf", "protobuf==3.20.3"),

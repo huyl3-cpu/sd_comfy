@@ -186,8 +186,9 @@ def main():
     
     # 9. Fix specific dependencies
     print("🔧 Fixing specific dependencies...")
+    # Pin 1.22.0 (bản CUDA 12 cuối). Từ 1.23.0 onnxruntime-gpu build cho CUDA 13 -> lỗi libcudart.so.13
     run("pip uninstall onnxruntime onnxruntime-gpu --system", check=False, quiet=True)
-    run("pip install onnxruntime-gpu --system", check=False, quiet=True)
+    run("pip install onnxruntime-gpu==1.22.0 --system", check=False, quiet=True)
 
     # Specific fixes for QwenVL
     #print("🔧 Aggressively upgrading transformers for QwenVL...")
